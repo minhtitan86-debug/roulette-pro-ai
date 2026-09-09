@@ -462,14 +462,22 @@ function runQuantAnalysis() {
     const lastIdx = WHEEL_ORDER.indexOf(lastNum);
 
     if (lastIdx !== -1) {
+        // QUÉT CÁC SỐ LÂN CẬN TRÊN BÁNH XE (BỎ QUA CHÍNH SỐ VỪA RA offset != 0)
+        // Thực tế bánh xe: bóng nảy văng sang các ô hàng xóm lân cận hoặc đối diện, cực hiếm khi rơi lại trúng tim số cũ (~2.7%)
         for (let offset = -3; offset <= 3; offset++) {
+            if (offset === 0) continue; // Bỏ qua chính số vừa xuất hiện
             const neighborIdx = (lastIdx + offset + 37) % 37;
-            scores[WHEEL_ORDER[neighborIdx]] += (25.0 - Math.abs(offset) * 4);
+            scores[WHEEL_ORDER[neighborIdx]] += (28.0 - Math.abs(offset) * 4);
         }
+        
+        // CUNG ĐỐI DIỆN NẢY BÓNG (OPPOSITE SECTOR - 180 ĐỘ)
         const oppositeIdx = (lastIdx + 18) % 37;
         for (let offset = -2; offset <= 2; offset++) {
-            scores[WHEEL_ORDER[(oppositeIdx + offset + 37) % 37]] += (18.0 - Math.abs(offset) * 3);
+            scores[WHEEL_ORDER[(oppositeIdx + offset + 37) % 37]] += (20.0 - Math.abs(offset) * 3);
         }
+
+        // KHỬ BỆT SỐ ĐƠN LIỀN KỀ: Phạt nặng chính số vừa ra để không bao giờ gợi ý đánh lại chính nó
+        scores[lastNum] -= 100.0;
     }
 
     // Quy luật 1/3
