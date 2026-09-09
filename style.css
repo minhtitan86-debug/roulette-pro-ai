@@ -851,3 +851,138 @@ button {
         grid-template-columns: 1fr;
     }
 }
+
+/* SCORECARD SECTION */
+.scorecard-section {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.scorecard-item {
+    background: rgba(16, 24, 38, 0.65);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.sc-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sc-val {
+    font-family: var(--font-mono);
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+/* RESULT EVALUATION BANNER */
+.result-eval-banner {
+    padding: 14px 20px;
+    border-radius: 14px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    animation: bannerSlideDown 0.35s ease;
+    border: 1px solid transparent;
+}
+
+@keyframes bannerSlideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.result-eval-banner.straight-win {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(20, 15, 5, 0.7) 100%);
+    border-color: var(--gold);
+    box-shadow: 0 0 25px rgba(212, 175, 55, 0.3);
+}
+
+.result-eval-banner.dozen-win {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(5, 25, 18, 0.7) 100%);
+    border-color: var(--emerald);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
+}
+
+.result-eval-banner.miss {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(25, 10, 10, 0.6) 100%);
+    border-color: rgba(239, 68, 68, 0.4);
+}
+
+.banner-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.banner-icon {
+    font-size: 1.8rem;
+}
+
+.banner-text h4 {
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.banner-text p {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.banner-pnl {
+    font-family: var(--font-mono);
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
+/* ROLLING MODE TAG */
+.rolling-mode-tag {
+    background: rgba(16, 185, 129, 0.15);
+    color: #6ee7b7;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    animation: pulse 2.5s infinite;
+}
+
+.card-subtitle {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.tape-slot.newest-drop {
+    border-color: var(--gold) !important;
+    box-shadow: 0 0 16px var(--gold-glow) !important;
+}
+
+.newest-badge {
+    position: absolute;
+    bottom: -8px;
+    background: var(--gold);
+    color: #000;
+    font-size: 0.55rem;
+    font-weight: 800;
+    padding: 1px 6px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+@media (max-width: 900px) {
+    .scorecard-section {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

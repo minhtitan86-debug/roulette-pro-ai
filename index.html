@@ -15,13 +15,13 @@
         <!-- HEADER -->
         <header class="header">
             <div class="brand">
-                <div class="brand-badge">PRO QUANT V3.6</div>
+                <div class="brand-badge">PRO QUANT V3.8 • ROLLING 10-SPIN</div>
                 <h1 class="logo-title">ROULETTE <span class="gold-text">QUANT AI</span></h1>
-                <p class="subtitle">Hệ Thống Phân Tích Xác Suất Bánh Xe & Dự Đoán 5 Số Thẳng Tỷ Lệ Thua Thấp</p>
+                <p class="subtitle">Hệ Thống Phân Tích Xác Suất Bánh Xe & Dự Đoán Tự Động Trượt 10 Phiên Liên Tục</p>
             </div>
             <div class="header-actions">
                 <button id="soundToggleBtn" class="btn-icon" title="Bật/Tắt âm thanh">
-                    <span class="icon">��</span>
+                    <span class="icon">🔊</span>
                 </button>
                 <button id="demoDataBtn" class="btn-secondary">
                     🎲 Nhập 10 Số Mẫu
@@ -32,14 +32,46 @@
             </div>
         </header>
 
+        <!-- KẾT QUẢ ĐỐI SOÁT VÒNG VỪA RỒI (AUTO WIN/LOSS EVALUATOR) -->
+        <div id="resultBanner" class="result-eval-banner" style="display: none;">
+            <!-- Render kết quả trúng số thẳng / bảo hiểm tự động bằng JS -->
+        </div>
+
+        <!-- BẢNG THEO DÕI HIỆU SUẤT PHIÊN (SESSION SCORECARD) -->
+        <section class="scorecard-section">
+            <div class="scorecard-item">
+                <span class="sc-label">Tổng Phiên Đã Quay</span>
+                <span class="sc-val" id="scTotalSpins">0</span>
+            </div>
+            <div class="scorecard-item">
+                <span class="sc-label">Trúng Số Thẳng (35:1)</span>
+                <span class="sc-val gold-text" id="scStraightWins">0</span>
+            </div>
+            <div class="scorecard-item">
+                <span class="sc-label">Trúng Dozen Bảo Hiểm</span>
+                <span class="sc-val emerald-text" id="scDozenWins">0</span>
+            </div>
+            <div class="scorecard-item">
+                <span class="sc-label">Tỷ Lệ Giữ/Tăng Vốn</span>
+                <span class="sc-val emerald-text" id="scWinRate">0%</span>
+            </div>
+            <div class="scorecard-item">
+                <span class="sc-label">Lợi Nhuận Phỉnh (PnL)</span>
+                <span class="sc-val" id="scPnlChips">+0 Phỉnh</span>
+            </div>
+        </section>
+
         <!-- TAPE: 10 PHIÊN GẦN NHẤT -->
         <section class="history-tape-section">
             <div class="section-title-row">
                 <div class="title-with-pill">
                     <span class="pulse-dot"></span>
-                    <span class="section-title">10 Phiên Gần Nhất (Nhập đủ 10 số để kích hoạt AI)</span>
+                    <span class="section-title">Cửa Sổ 10 Phiên Gần Nhất</span>
+                    <span id="rollingModeTag" class="rolling-mode-tag" style="display: none;">🔄 Chế Độ Trượt Tự Động Đang Bật</span>
                 </div>
-                <div class="tape-counter">Đã nhập: <b id="inputCount" class="gold-text">0</b>/10</div>
+                <div class="tape-counter">
+                    <span id="tapeStatusText">Đã nhập: <b id="inputCount" class="gold-text">0</b>/10</span>
+                </div>
             </div>
             
             <div class="tape-container" id="tapeContainer">
@@ -53,7 +85,10 @@
             <div class="board-column">
                 <div class="card glass-card">
                     <div class="card-header">
-                        <h3>🎯 Bàn Số Châu Âu (Chạm để nhập nhanh)</h3>
+                        <div>
+                            <h3>🎯 Bàn Số Châu Âu (Bấm Số Mới Để Trượt Tự Động)</h3>
+                            <p class="card-subtitle">Mỗi khi có kết quả mới, chỉ cần bấm 1 lần vào số đó, AI sẽ tự động cập nhật ngay!</p>
+                        </div>
                         <div class="board-hints">
                             <span class="hint-tag red">Đỏ</span>
                             <span class="hint-tag black">Đen</span>
@@ -78,7 +113,7 @@
 
                     <!-- PHÂN BỐ CUNG BÁNH XE (WHEEL SECTORS) -->
                     <div class="wheel-sectors-box">
-                        <h4>🧭 Phân Bổ Cung Bánh Xe Thực Tế</h4>
+                        <h4>🧭 Phân Bổ Cung Bánh Xe Thực Tế (Trong 10 phiên trượt)</h4>
                         <div class="sectors-grid">
                             <div class="sector-item" id="secVoisins">
                                 <div class="sec-label">Voisins du Zéro (17 số)</div>
@@ -106,7 +141,7 @@
                 <div class="card glass-card gold-border">
                     <div class="prediction-header">
                         <div class="ai-status">
-                            <span class="ai-chip">QUANT ALGORITHM</span>
+                            <span class="ai-chip">DỰ ĐOÁN CHO PHIÊN KẾ TIẾP <b id="nextSpinNumber" class="gold-text">#11</b></span>
                             <h2>5 CON SỐ VÀNG TỶ LỆ CAO NHẤT</h2>
                         </div>
                         <div class="confidence-badge" id="confidenceBadge">Đang chờ dữ liệu...</div>
@@ -115,7 +150,7 @@
                     <div class="top5-container" id="top5Container">
                         <div class="empty-state">
                             <span class="empty-icon">⏳</span>
-                            <p>Hãy bấm chọn đủ <b>10 số</b> của 10 phiên liên tiếp trên bàn số bên trái để hệ thống tính toán xác suất hồi quy cung bánh xe.</p>
+                            <p>Hãy bấm chọn đủ <b>10 số</b> của 10 phiên đầu tiên. Kể từ phiên thứ 11 trở đi, mỗi khi có kết quả mới chỉ cần bấm <b>1 lần</b>, hệ thống sẽ tự động cuốn chiếu!</p>
                         </div>
                     </div>
                 </div>
@@ -182,28 +217,28 @@
                             <div class="step-num">1</div>
                             <div class="step-desc">
                                 <b>Đặt 5 Số Thẳng Vàng:</b> Mỗi số <b>1 phỉnh</b> (Tổng: 5 phỉnh).
-                                <br><small>👉 Nếu nổ trúng 1 trong 5 số: Nhận 36 phỉnh (Lãi ròng đậm +31 phỉnh!).</small>
+                                <br><small>👉 Nếu nổ trúng 1 trong 5 số: Nhận 36 phỉnh (Lãi ròng đậm <b>+25 phỉnh</b> sau khi trừ tiền cược bảo hiểm!).</small>
                             </div>
                         </div>
                         <div class="strategy-step">
                             <div class="step-num">2</div>
                             <div class="step-desc">
                                 <b>Cược Bảo Hiểm 2 Hàng (Dozen):</b> Đặt <b>3 phỉnh</b> vào mỗi Hàng được gợi ý (Tổng: 6 phỉnh).
-                                <br><small>👉 Bao phủ 24/37 số (~65% mặt bàn). Nếu trúng Dozen: Thu về 9 phỉnh (Bảo hòa vốn / Lãi nhẹ).</small>
+                                <br><small>👉 Bao phủ 24/37 số (~65% mặt bàn). Nếu trúng Dozen: Thu về 9 phỉnh (Bù lỗ hoặc hòa vốn an toàn).</small>
                             </div>
                         </div>
                         <div class="strategy-summary">
                             <div class="sum-item">
-                                <span class="sum-label">Tổng phỉnh 1 vòng:</span>
+                                <span class="sum-label">Tổng cược 1 phiên:</span>
                                 <span class="sum-val gold-text">11 Phỉnh</span>
                             </div>
                             <div class="sum-item">
-                                <span class="sum-label">Xác suất không bị mất vốn:</span>
-                                <span class="sum-val emerald-text">~78.4%</span>
+                                <span class="sum-label">Cửa không mất vốn:</span>
+                                <span class="sum-val emerald-text">29 / 37 Số (~78.4%)</span>
                             </div>
                             <div class="sum-item">
-                                <span class="sum-label">Số cửa an toàn:</span>
-                                <span class="sum-val">29 / 37 Số</span>
+                                <span class="sum-label">Chế độ vận hành:</span>
+                                <span class="sum-val gold-text">Tự Trượt 10 Phiên</span>
                             </div>
                         </div>
                     </div>
