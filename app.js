@@ -135,26 +135,36 @@ function initBoardUI() {
     loadFromLocalStorage();
     renderTapeSlots();
     updateScorecardUI();
+    runQuantAnalysis();
 }
 
 // RENDER DẢI BĂNG 10 PHIÊN TRƯỢT
 function renderTapeSlots() {
-    const tape = document.getElementById('tapeContainer');
-    tape.innerHTML = '';
+    const tape = document.getElementById("tapeContainer");
+    if (!tape) return;
+    tape.innerHTML = "";
 
     const count = historySpins.length;
-    document.getElementById('inputCount').innerText = count;
-
     const isRolling = allSpinsHistory.length >= 10;
-    document.getElementById('rollingModeTag').style.display = isRolling ? 'inline-block' : 'none';
+
+    const rollingTag = document.getElementById("rollingModeTag");
+    if (rollingTag) {
+        rollingTag.style.display = isRolling ? "inline-block" : "none";
+    }
     
     const nextSpinIdx = allSpinsHistory.length + 1;
-    document.getElementById('nextSpinNumber').innerText = `#${nextSpinIdx}`;
+    const nextSpinEl = document.getElementById("nextSpinNumber");
+    if (nextSpinEl) {
+        nextSpinEl.innerText = `#${nextSpinIdx}`;
+    }
 
-    if (isRolling) {
-        document.getElementById('tapeStatusText').innerHTML = `Đang trượt 10 phiên gần nhất (Tổng đã quay: <b class="gold-text">${allSpinsHistory.length}</b> phiên)`;
-    } else {
-        document.getElementById('tapeStatusText').innerHTML = `Đã nhập: <b class="gold-text">${count}</b>/10 phiên khởi động`;
+    const statusText = document.getElementById("tapeStatusText");
+    if (statusText) {
+        if (isRolling) {
+            statusText.innerHTML = `Đang trượt 10 phiên gần nhất (Tổng đã quay: <b class="gold-text">${allSpinsHistory.length}</b> phiên)`;
+        } else {
+            statusText.innerHTML = `Đã nhập: <b class="gold-text">${count}</b>/10 phiên khởi động`;
+        }
     }
 
     for (let i = 0; i < 10; i++) {
@@ -375,6 +385,7 @@ function saveToLocalStorage() {
     try {
         localStorage.setItem('roulette_all_spins', JSON.stringify(allSpinsHistory));
         localStorage.setItem('roulette_session_stats', JSON.stringify(sessionStats));
+        localStorage.setItem('roulette_last_predictions', JSON.stringify(lastPredictions));
     } catch (e) {}
 }
 
@@ -388,6 +399,10 @@ function loadFromLocalStorage() {
         const savedStats = localStorage.getItem('roulette_session_stats');
         if (savedStats) {
             sessionStats = JSON.parse(savedStats);
+        }
+        const savedPred = localStorage.getItem('roulette_last_predictions');
+        if (savedPred) {
+            lastPredictions = JSON.parse(savedPred);
         }
     } catch (e) {}
 }
