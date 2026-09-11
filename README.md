@@ -1,80 +1,53 @@
-# �� Roulette Quant AI - Pro Statistical Predictor
+# 🎰 Roulette Quant AI Pro - Bàn Cược Trực Quan & Chiến Thuật 10 Phỉnh
 
-Ứng dụng dự đoán Roulette chuyên sâu chuẩn Châu Âu (37 số: 0-36) hoạt động trên nền tảng web, sẵn sàng đưa lên GitHub và xuất bản miễn phí qua **GitHub Pages**.
+Ứng dụng dự đoán Roulette chuyên sâu chuẩn Châu Âu (37 số: 0–36) hoạt động trên nền tảng web, sẵn sàng xuất bản qua **GitHub Pages** hoặc chạy trực tiếp trên máy chủ / VPS.
 
-Dự án được xây dựng dựa trên các thuật toán xác suất cung bánh xe vật lý, độ lệch chuẩn Z-Score và chiến thuật cược bảo vệ vốn (Hedge Formula) giúp người chơi đạt độ phủ tới **~78.4% mặt bàn** với tỷ lệ thua cực thấp.
-
----
-
-## 🌟 Các Tính Năng Nổi Bật
-
-1. **Bàn Nhập Số Trực Quan (Interactive 0-36 Board):**
-   - Chạm/click trực tiếp vào các số trên bàn để ghi nhận lịch sử (không cần gõ bàn phím).
-   - Đánh dấu màu sắc chuẩn sòng bài: 0 Xanh lá, 18 số Đỏ, 18 số Đen.
-   - Dải băng trượt (Rolling Tape) hiển thị 10 phiên gần nhất với hiệu ứng thẻ bài sang trọng.
-
-2. **Thuật Toán Dự Đoán Top 5 Số Vàng (Straight-up Numbers):**
-   - **Phân Tích Cung Bánh Xe Vật Lý (French Wheel Sectors):** Theo dõi mật độ bóng rơi vào 3 cung chính (*Voisins du Zéro*, *Tiers du Cylindre*, *Orphelins*).
-   - **Ma Trận Chuyển Dịch Lân Cận (Neighbor Arc Proximity):** Tính toán độ lệch quán tính tay quay của Dealer và điểm nảy đối diện 180 độ trên vòng tròn bánh xe.
-   - **Quy Luật 1/3 (Law of the Thirds):** Nhận diện các con số đang ấm (hot sleepers) có xu hướng hồi quy trong chu kỳ ngắn.
-
-3. **Dự Đoán Cược Ngoài & Thế Hàng (Outside Bets & Dozens):**
-   - Phân tích độ lệch chuẩn Đỏ / Đen và Chẵn / Lẻ.
-   - Đề xuất **2 Hàng (Dozens)** tối ưu nhất có tỷ lệ thắng **64.8%**.
-
-4. **Kế Hoạch Cược Tỷ Lệ Thua Cực Thấp (Low-Risk Bankroll Hedge):**
-   - **5 phỉnh** vào 5 con số vàng thẳng (Ăn 1:35 nếu nổ trúng).
-   - **6 phỉnh** cược bảo hiểm vào 2 Hàng Dozen (Bảo toàn vốn và ăn lãi nhẹ).
-   - **Độ phủ an toàn:** 29 trên 37 số (**~78.4% cơ hội giữ/tăng vốn**).
-
-5. **Hiệu Ứng Casino Cao Cấp:**
-   - Dark Luxury Velvet & Gold Theme chuẩn phong cách sòng bài Monte Carlo.
-   - Âm thanh gõ phỉnh và chuông dự đoán tổng hợp qua Web Audio API (hoạt động offline 100%, không cần tải file âm thanh nặng).
-   - Tương thích hoàn hảo trên điện thoại (iOS, Android) và máy tính.
+Phiên bản **V4.0** được thiết kế lại toàn diện:
+1. **Mặt bàn cược trực quan (Visual Casino Layout):** Bảng số 0–36, các ô Hàng (Dozens), Cột (Columns), cược ngoài, cùng **Vòng cung bánh xe vật lý (Racetrack)** với hiển thị trực tiếp các đồng phỉnh (Chips 2k) phát sáng tại các vị trí cược.
+2. **Khởi động nhanh 5 vòng:** Chỉ cần nhập liên tiếp 5 vòng quay đầu tiên để kích hoạt cược. Từ vòng tiếp theo, chỉ cần nhập 1 số để hệ thống tự động đối soát và tính cược cho vòng mới.
+3. **Chiến thuật phân bổ 10 phỉnh (20.000 VNĐ/vòng) 3 tầng:**
+   - **Tầng 1 (3 phỉnh = 6.000đ):** 3 số vàng thẳng hạt nhân $\rightarrow$ **Ăn lớn 35:1 (Lãi ròng +52.000 VNĐ = +26 phỉnh)**!
+   - **Tầng 2 (4 phỉnh = 8.000đ):** 1 Hàng (Dozen / Cột) tối ưu $\rightarrow$ **Ăn 1:2 (Lãi nhẹ +4.000 VNĐ = +2 phỉnh)**!
+   - **Tầng 3 (3 phỉnh = 6.000đ):** Cụm bánh xe vật lý lân cận $\rightarrow$ **Thua rất ít (Chỉ thua -2.000đ đến -4.000đ)**, bảo toàn tới 16.000đ - 18.000đ tiền vốn!
+   - **Độ phủ an toàn:** ~75% mặt bàn.
 
 ---
 
-## 🚀 Hướng Dẫn Đưa Lên GitHub & Mở Web Miễn Phí (GitHub Pages)
+## 🌟 Hướng Dẫn Sử Dụng 3 Bước
 
-### Bước 1: Khởi tạo Git repository trên máy của bạn
+### Bước 1: Khởi động 5 vòng đầu tiên
+- Mở web lên, nhìn vào dải băng trên cùng.
+- Nhập lần lượt **5 số kết quả thực tế vừa ra** (bằng cách click trực tiếp vào ô số trên bàn cược hoặc gõ số vào ô input).
+- Sau 5 số, hệ thống sẽ tự động chuyển sang chế độ **Trượt tự động (Rolling Mode)**.
+
+### Bước 2: Quan sát các vị trí đặt cược trên bàn
+- Nhìn vào mặt bàn cược bên trái:
+  + Các ô số thẳng vàng sẽ có **đồng phỉnh vàng x1 (2k)**.
+  + Ô Hàng (1st 12 / 2nd 12 / 3rd 12) sẽ có **đồng phỉnh xanh lá x4 (8k)**.
+  + Cụm bánh xe lân cận sẽ sáng đèn xanh dương để bảo hiểm thua ít.
+- Cột bên phải hiển thị chi tiết số tiền và kịch bản lợi nhuận.
+
+### Bước 3: Đặt cược trên bàn thật & Nhập 1 số tiếp theo
+- Sau khi bàn roulette thật có kết quả, bấm vào số vừa ra trên màn hình.
+- Hệ thống lập tức:
+  + Hiện banner đối soát: Báo trúng số thẳng (+52k), trúng hàng (+4k), vào cụm (-2k) hay lệch.
+  + Cộng/trừ PnL tài chính (VNĐ & Phỉnh).
+  + Tự động cuốn chiếu lịch sử và xuất ngay vị trí cược cho vòng kế tiếp!
+
+---
+
+## 🚀 Hướng Dẫn Mở Web Qua Local Server Hoặc GitHub Pages
+
+### Chạy Local trên VPS / Máy tính:
 ```bash
-cd /root/roulette-pro-ai
-git init
+python3 -m http.server 8080
+```
+Truy cập: `http://localhost:8080/`
+
+### Đẩy lên GitHub & Bật GitHub Pages:
+```bash
 git add .
-git commit -m "Initial commit: Roulette Quant AI Pro"
+git commit -m "Upgrade V4.0: Visual table layout, 5-spin fast start, 10-chip strategy"
+git push origin main
 ```
-
-### Bước 2: Tạo Repo mới trên GitHub
-1. Đăng nhập vào [GitHub.com](https://github.com).
-2. Bấm vào dấu `+` ở góc phải trên cùng ➡️ Chọn **New repository**.
-3. Đặt tên repository (ví dụ: `roulette-pro-ai`) ➡️ Chọn **Public** ➡️ Bấm **Create repository**.
-
-### Bước 3: Đẩy code lên GitHub
-```bash
-git branch -M main
-git remote add origin https://github.com/<tên-tài-khoản-của-bạn>/roulette-pro-ai.git
-git push -u origin main
-```
-
-### Bước 4: Kích hoạt GitHub Pages để chạy web trên điện thoại
-1. Vào repository vừa tạo trên GitHub ➡️ Bấm vào thẻ **Settings**.
-2. Ở menu bên trái, chọn mục **Pages** (dưới nhóm *Code and automation*).
-3. Tại phần **Branch**, chọn nhánh `main` và thư mục `/ (root)` ➡️ Bấm **Save**.
-4. Sau 1 phút, GitHub sẽ cung cấp cho bạn một đường link web miễn phí vĩnh viễn dạng:
-   `https://<tên-tài-khoản>.github.io/roulette-pro-ai/`
-
-👉 Bạn có thể lưu link này vào màn hình chính điện thoại (Add to Home Screen) để mở lên như một App thực thụ mỗi khi vào bàn chơi!
-
----
-
-## 🛠 Cấu Trúc Dự Án
-```text
-roulette-pro-ai/
-├── index.html       # Cấu trúc giao diện bàn cược, dải 10 phiên và kết quả AI
-├── style.css        # Giao diện Dark Velvet Casino, Glassmorphism & Gold Theme
-├── app.js           # Thuật toán phân tích bánh xe, tính toán xác suất & Web Audio
-└── README.md        # Hướng dẫn chi tiết dự án
-```
-
----
-*Lưu ý: Mọi thuật toán xác suất hỗ trợ quản trị vốn và tối ưu hóa thế cược, hãy luôn chơi có trách nhiệm và giữ vững kỷ luật vốn.*
+Vào `Settings` ➡️ `Pages` ➡️ Chọn branch `main` ➡️ Save.

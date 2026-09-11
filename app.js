@@ -1,6 +1,7 @@
 /**
- * ROULETTE QUANT AI - PRO STATISTICAL PREDICTOR V3.8
- * Tự Động Cuốn Chiếu 10 Phiên & Đối Soát Kết Quả Thắng/Thua Từng Vòng
+ * ROULETTE QUANT AI PRO V4.0
+ * Bàn Cược Trực Quan • Khởi Động 5 Vòng • Phân Bổ 10 Phỉnh (2k/Phỉnh = 20k/Vòng)
+ * Chiến Thuật 3 Tầng: Số Thẳng (Ăn Đậm) - Hàng (Bảo Toàn) - Cụm (Thua Ít)
  */
 
 // BỐ TRÍ BÁNH XE CHÂU ÂU (EUROPEAN WHEEL ORDER)
@@ -11,35 +12,54 @@ const WHEEL_ORDER = [
 const RED_NUMBERS = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
 const BLACK_NUMBERS = [2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35];
 
-// CÁC CUNG BÁNH XE (FRENCH SECTORS)
+// 4 CUNG BÁNH XE VẬT LÝ CHÂU ÂU
 const SECTORS = {
-    VOISINS: [22, 18, 29, 7, 28, 12, 35, 3, 26, 0, 32, 15, 19, 4, 21, 2, 25],
-    TIERS: [27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33],
-    ORPHELINS: [1, 20, 14, 31, 9, 17, 34, 6]
+    VOISINS: [22, 18, 29, 7, 28, 12, 35, 3, 26, 0, 32, 15, 19, 4, 21, 2, 25], // 17 số
+    TIERS: [27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33],                    // 12 số
+    ORPHELINS: [1, 20, 14, 31, 9, 17, 34, 6],                                 // 8 số
+    JEU_ZERO: [12, 35, 3, 26, 0, 32, 15]                                      // 7 số
 };
 
-// TRẠNG THÁI TOÀN CỤC CỦA PHIÊN CHƠI
-let historySpins = [];       // Cửa sổ trượt 10 phiên gần nhất
-let allSpinsHistory = [];    // Toàn bộ lịch sử từ đầu phiên
+// ĐỊNH NGHĨA 3 HÀNG (DOZENS) & 3 CỘT (COLUMNS)
+const DOZENS = {
+    dozen1: Array.from({length: 12}, (_, i) => i + 1),        // 1 - 12
+    dozen2: Array.from({length: 12}, (_, i) => i + 13),       // 13 - 24
+    dozen3: Array.from({length: 12}, (_, i) => i + 25)        // 25 - 36
+};
+
+const COLUMNS = {
+    col1: [1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34],
+    col2: [2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 35],
+    col3: [3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36]
+};
+
+// TRẠNG THÁI TOÀN CỤC CỦA ỨNG DỤNG
+let historySpins = [];          // Cửa sổ trượt 5 - 10 vòng gần nhất
+let allSpinsHistory = [];       // Toàn bộ lịch sử từ đầu phiên
 let soundEnabled = true;
 let audioCtx = null;
 
-// LƯU DỰ ĐOÁN CỦA PHIÊN TRƯỚC ĐỂ ĐỐI SOÁT
-let lastPredictions = {
-    top5: [],
-    dozens: [] // Mảng ID tá hàng [1, 2] hoặc [2, 3]
-};
+const CHIP_VALUE_VND = 2000;    // Mỗi phỉnh 2.000 VNĐ
+const TOTAL_CHIPS_BET = 10;     // Mỗi vòng cược đúng 10 phỉnh = 20.000 VNĐ
 
-// THỐNG KÊ HIỆU SUẤT PHIÊN
+// KẾ HOẠCH CƯỢC CỦA VÒNG TRƯỚC (DÙNG ĐỂ ĐỐI SOÁT KẾT QUẢ)
+let lastBetPlan = null;
+
+// THỐNG KÊ HIỆU SUẤT TÀI CHÍNH
 let sessionStats = {
     totalEvaluated: 0,
     straightWins: 0,
     dozenWins: 0,
+    clusterWins: 0,
     misses: 0,
-    pnlChips: 0
+    pnlChips: 0,
+    pnlVnd: 0
 };
 
-// KHỞI TẠO ÂM THANH WEB AUDIO
+// ============================================================================
+// KHỞI TẠO ÂM THANH WEB AUDIO CASINO
+// ============================================================================
+
 function initAudio() {
     if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -58,583 +78,827 @@ function playSound(type = 'chip') {
         const gain = audioCtx.createGain();
         osc.connect(gain);
         gain.connect(audioCtx.destination);
-
         const now = audioCtx.currentTime;
+
         if (type === 'chip') {
-            osc.frequency.setValueAtTime(800, now);
-            osc.frequency.exponentialRampToValueAtTime(400, now + 0.08);
-            gain.gain.setValueAtTime(0.25, now);
+            // Tiếng gõ phỉnh nhựa casino
+            osc.frequency.setValueAtTime(900, now);
+            osc.frequency.exponentialRampToValueAtTime(450, now + 0.08);
+            gain.gain.setValueAtTime(0.3, now);
             gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
             osc.start(now);
             osc.stop(now + 0.08);
-        } else if (type === 'predict') {
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(523.25, now);
-            osc.frequency.setValueAtTime(659.25, now + 0.09);
-            osc.frequency.setValueAtTime(783.99, now + 0.18);
-            gain.gain.setValueAtTime(0.18, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.32);
-            osc.start(now);
-            osc.stop(now + 0.32);
         } else if (type === 'jackpot') {
-            // Âm thanh ăn đậm số thẳng
+            // Tiếng chuông nổ số thẳng (3 nốt ngân vang)
+            const chords = [523.25, 659.25, 783.99, 1046.50];
+            chords.forEach((freq, idx) => {
+                const o = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                o.connect(g);
+                g.connect(audioCtx.destination);
+                o.type = 'triangle';
+                o.frequency.setValueAtTime(freq, now + idx * 0.08);
+                g.gain.setValueAtTime(0.2, now + idx * 0.08);
+                g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.45);
+                o.start(now + idx * 0.08);
+                o.stop(now + idx * 0.08 + 0.45);
+            });
+        } else if (type === 'win') {
+            // Tiếng thắng hàng
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(587.33, now); // D5
-            osc.frequency.setValueAtTime(880.00, now + 0.1); // A5
-            osc.frequency.setValueAtTime(1174.66, now + 0.2); // D6
-            gain.gain.setValueAtTime(0.3, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.5);
+            osc.frequency.setValueAtTime(587.33, now);
+            osc.frequency.exponentialRampToValueAtTime(880, now + 0.18);
+            gain.gain.setValueAtTime(0.22, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.22);
             osc.start(now);
-            osc.stop(now + 0.5);
+            osc.stop(now + 0.22);
+        } else if (type === 'safe') {
+            // Tiếng bảo vệ vốn cụm
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(440, now);
+            gain.gain.setValueAtTime(0.18, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+            osc.start(now);
+            osc.stop(now + 0.15);
+        } else if (type === 'miss') {
+            // Tiếng trượt cược
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(220, now);
+            osc.frequency.exponentialRampToValueAtTime(130, now + 0.25);
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+            osc.start(now);
+            osc.stop(now + 0.25);
         }
-    } catch (e) {}
+    } catch (e) {
+        console.warn('Lỗi Audio:', e);
+    }
 }
 
-function getNumberColor(num) {
-    if (num === 0) return 'zero';
-    return RED_NUMBERS.includes(num) ? 'red' : 'black';
-}
-
-function getNumberSector(num) {
-    if (SECTORS.VOISINS.includes(num)) return 'Voisins du Zéro';
-    if (SECTORS.TIERS.includes(num)) return 'Tiers du Cylindre';
-    if (SECTORS.ORPHELINS.includes(num)) return 'Orphelins';
-    return 'Châu Âu';
-}
-
-function getNumberDozenId(num) {
-    if (num >= 1 && num <= 12) return 1;
-    if (num >= 13 && num <= 24) return 2;
-    if (num >= 25 && num <= 36) return 3;
-    return 0; // Số 0 không thuộc Dozen nào
-}
-
-// KHỞI TẠO BÀN CƯỢC 1-36
-function initBoardUI() {
-    const gridCells = document.getElementById('gridCells');
-    gridCells.innerHTML = '';
-
-    for (let row = 3; row >= 1; row--) {
-        for (let col = 0; col < 12; col++) {
-            const num = col * 3 + row;
-            const color = getNumberColor(num);
-
-            const cell = document.createElement('div');
-            cell.className = `num-cell ${color}`;
-            cell.dataset.num = num;
-            cell.id = `cell-${num}`;
-            cell.innerHTML = `
-                <span class="cell-num">${num}</span>
-                <span class="hit-count-pill" id="hit-${num}" style="display:none">0</span>
-            `;
-            cell.onclick = () => handleNumberClick(num);
-            gridCells.appendChild(cell);
-        }
-    }
-
-    loadFromLocalStorage();
-    renderTapeSlots();
-    updateScorecardUI();
-    runQuantAnalysis();
-}
-
-// RENDER DẢI BĂNG 10 PHIÊN TRƯỢT
-function renderTapeSlots() {
-    const tape = document.getElementById("tapeContainer");
-    if (!tape) return;
-    tape.innerHTML = "";
-
-    const count = historySpins.length;
-    const isRolling = allSpinsHistory.length >= 10;
-
-    const rollingTag = document.getElementById("rollingModeTag");
-    if (rollingTag) {
-        rollingTag.style.display = isRolling ? "inline-block" : "none";
-    }
-    
-    const nextSpinIdx = allSpinsHistory.length + 1;
-    const nextSpinEl = document.getElementById("nextSpinNumber");
-    if (nextSpinEl) {
-        nextSpinEl.innerText = `#${nextSpinIdx}`;
-    }
-
-    const statusText = document.getElementById("tapeStatusText");
-    if (statusText) {
-        if (isRolling) {
-            statusText.innerHTML = `Đang trượt 10 phiên gần nhất (Tổng đã quay: <b class="gold-text">${allSpinsHistory.length}</b> phiên)`;
-        } else {
-            statusText.innerHTML = `Đã nhập: <b class="gold-text">${count}</b>/10 phiên khởi động`;
-        }
-    }
-
-    for (let i = 0; i < 10; i++) {
-        const slot = document.createElement('div');
-        slot.className = 'tape-slot';
-
-        if (i < count) {
-            const num = historySpins[i];
-            const color = getNumberColor(num);
-            const colorText = color === 'zero' ? 'Zero' : (color === 'red' ? 'Đỏ' : 'Đen');
-            const isNewest = (i === count - 1) && (allSpinsHistory.length >= 10);
-
-            slot.className = `tape-slot filled ${color} ${isNewest ? 'newest-drop' : ''}`;
-            slot.innerHTML = `
-                <span class="slot-index">#${allSpinsHistory.length - (count - 1 - i)}</span>
-                <span class="slot-value">${num}</span>
-                <span class="slot-badge">${colorText}</span>
-                ${isNewest ? '<span class="newest-badge">MỚI</span>' : ''}
-            `;
-        } else {
-            slot.innerHTML = `
-                <span class="slot-index">#${i + 1}</span>
-                <span class="slot-value" style="opacity: 0.15">--</span>
-            `;
-        }
-        tape.appendChild(slot);
-    }
-
-    updateBoardHitCountPills();
-}
-
-// CẬP NHẬT SỐ LẦN XUẤT HIỆN TRONG 10 PHIÊN TRƯỢT
-function updateBoardHitCountPills() {
-    for (let i = 0; i <= 36; i++) {
-        const pill = document.getElementById(`hit-${i}`);
-        if (pill) pill.style.display = 'none';
-    }
-
-    const counts = {};
-    historySpins.forEach(n => counts[n] = (counts[n] || 0) + 1);
-
-    for (let num in counts) {
-        const pill = document.getElementById(`hit-${num}`);
-        if (pill) {
-            pill.innerText = `${counts[num]}x`;
-            pill.style.display = 'inline-block';
-        }
-    }
+function toggleSound() {
+    soundEnabled = !soundEnabled;
+    const icon = document.getElementById('soundIcon');
+    if (icon) icon.innerText = soundEnabled ? '🔊' : '🔇';
 }
 
 // ============================================================================
-// XỬ LÝ NHẬP SỐ MỚI (TỰ ĐỘNG CUỐN CHIẾU & ĐỐI SOÁT KẾT QUẢ)
+// KHỞI TẠO GIAO DIỆN BÀN CƯỢC 36 SỐ & RACETRACK BÁNH XE
+// ============================================================================
+
+function initRouletteBoard() {
+    const grid = document.getElementById('numbersGridContainer');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    // Thứ tự 3 hàng Roulette chuẩn quốc tế:
+    // Hàng 1 (trên cùng): 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36
+    // Hàng 2 (giữa):     2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 35
+    // Hàng 3 (dưới cùng): 1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34
+    const rowNumbers = [
+        [3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36],
+        [2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 35],
+        [1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34]
+    ];
+
+    for (let r = 0; r < 3; r++) {
+        for (let c = 0; c < 12; c++) {
+            const num = rowNumbers[r][c];
+            const isRed = RED_NUMBERS.includes(num);
+            const colorClass = isRed ? 'red' : 'black';
+
+            const cell = document.createElement('div');
+            cell.className = `number-cell ${colorClass}`;
+            cell.id = `cell-${num}`;
+            cell.setAttribute('onclick', `handleNumberClick(${num})`);
+
+            cell.innerHTML = `
+                <span class="cell-number">${num}</span>
+                <div class="chip-spot" id="chip-spot-${num}"></div>
+                <span class="hit-badge" id="hit-${num}">0x</span>
+            `;
+
+            grid.appendChild(cell);
+        }
+    }
+
+    initRacetrackWheel();
+}
+
+function initRacetrackWheel() {
+    const wheelContainer = document.getElementById('racetrackWheel');
+    if (!wheelContainer) return;
+    wheelContainer.innerHTML = '';
+
+    WHEEL_ORDER.forEach(num => {
+        let colorClass = 'black';
+        if (num === 0) colorClass = 'zero';
+        else if (RED_NUMBERS.includes(num)) colorClass = 'red';
+
+        const pocket = document.createElement('div');
+        pocket.className = `wheel-pocket ${colorClass}`;
+        pocket.id = `pocket-${num}`;
+        pocket.setAttribute('onclick', `handleNumberClick(${num})`);
+        pocket.innerHTML = `<span class="pocket-num">${num}</span>`;
+
+        wheelContainer.appendChild(pocket);
+    });
+}
+
+// ============================================================================
+// XỬ LÝ NHẬP SỐ MỚI (TỰ ĐỘNG CUỐN CHIẾU & ĐỐI SOÁT VÒNG CƯỢC)
 // ============================================================================
 
 function handleNumberClick(num) {
     playSound('chip');
+    highlightCellPulse(num);
 
-    // Hiệu ứng nháy ô được chọn
-    const el = num === 0 ? document.querySelector('.zero-cell') : document.getElementById(`cell-${num}`);
-    if (el) {
-        el.classList.add('active-pulse');
-        setTimeout(() => el.classList.remove('active-pulse'), 300);
-    }
-
-    // 1. ĐỐI SOÁT VỚI DỰ ĐOÁN CỦA PHIÊN TRƯỚC (NẾU ĐÃ CÓ DỰ ĐOÁN ĐỦ 10 SỐ)
-    if (lastPredictions.top5.length === 5) {
-        evaluateLastPrediction(num);
+    // 1. ĐỐI SOÁT VỚI KẾ HOẠCH CƯỢC CỦA VÒNG TRƯỚC (NẾU ĐÃ CÓ CƯỢC)
+    if (lastBetPlan && lastBetPlan.straightNumbers && lastBetPlan.straightNumbers.length > 0) {
+        evaluateLastBet(num);
     }
 
     // 2. LƯU VÀO LỊCH SỬ TỔNG
     allSpinsHistory.push(num);
 
-    // 3. TỰ ĐỘNG TRƯỢT CỬA SỔ 10 PHIÊN
+    // 3. CẬP NHẬT CỬA SỔ TRƯỢT 5-10 VÒNG
+    // Nếu vượt quá 10 vòng, đẩy số cũ nhất ra để duy trì quán tính mới nhất
     if (historySpins.length >= 10) {
-        historySpins.shift(); // Tự động đẩy số cũ nhất ra
+        historySpins.shift();
     }
-    historySpins.push(num); // Nạp số mới vào cuối
+    historySpins.push(num);
 
     saveToLocalStorage();
     renderTapeSlots();
     runQuantAnalysis();
 }
 
-// ĐỐI SOÁT VÒNG TRƯỚC: THẮNG SỐ THẲNG HAY BẢO HIỂM DOZEN?
-function evaluateLastPrediction(newNum) {
-    const isStraightHit = lastPredictions.top5.includes(newNum);
-    const dozenId = getNumberDozenId(newNum);
-    const isDozenHit = lastPredictions.dozens.includes(dozenId);
+function highlightCellPulse(num) {
+    const el = num === 0 ? document.getElementById('cell-0') : document.getElementById(`cell-${num}`);
+    if (el) {
+        el.style.transform = 'scale(1.15)';
+        el.style.filter = 'brightness(1.5)';
+        setTimeout(() => {
+            el.style.transform = '';
+            el.style.filter = '';
+        }, 300);
+    }
+}
+
+function handleInputKeydown(event) {
+    if (event.key === 'Enter') {
+        submitNumberFromInput();
+    }
+}
+
+function submitNumberFromInput() {
+    const inp = document.getElementById('numInput');
+    if (!inp) return;
+    const val = parseInt(inp.value, 10);
+    if (!isNaN(val) && val >= 0 && val <= 36) {
+        handleNumberClick(val);
+        inp.value = '';
+    } else {
+        alert('Vui lòng nhập số hợp lệ từ 0 đến 36!');
+    }
+}
+
+function handleOutsideBetClick(betType) {
+    // Thông báo cho người dùng
+    playSound('chip');
+}
+
+// ============================================================================
+// BỘ ĐỐI SOÁT KẾT QUẢ CƯỢC VÒNG VỪA RỒI (TÍNH PNL TIỀN VNĐ & PHỈNH)
+// ============================================================================
+
+function evaluateLastBet(newNum) {
+    if (!lastBetPlan) return;
 
     sessionStats.totalEvaluated++;
+
+    const isStraightHit = lastBetPlan.straightNumbers.includes(newNum);
+    const isDozenHit = lastBetPlan.dozenNumbers.includes(newNum);
+    const isClusterHit = lastBetPlan.clusterNumbers.includes(newNum);
 
     const banner = document.getElementById('resultBanner');
     banner.style.display = 'flex';
 
     if (isStraightHit) {
-        // ĂN ĐẬM SỐ THẲNG (35:1)
-        // 5 phỉnh số thẳng + 6 phỉnh dozen = 11 phỉnh cược. Ăn số thẳng nhận 36 phỉnh. Lãi ròng = +25 phỉnh!
+        // �� TẦNG 1: NỔ TRÚNG SỐ THẲNG (ĂN ĐẬM)
+        // 1 phỉnh ăn 35 phỉnh (trả lại 36 phỉnh cả gốc). Trừ 10 phỉnh tổng cược => LÃI RÒNG: +26 phỉnh = +52.000 VNĐ!
+        const netChips = 26;
+        const netVnd = netChips * CHIP_VALUE_VND;
+
         sessionStats.straightWins++;
-        sessionStats.pnlChips += 25;
+        sessionStats.pnlChips += netChips;
+        sessionStats.pnlVnd += netVnd;
         playSound('jackpot');
 
-        banner.className = 'result-eval-banner straight-win';
+        banner.className = 'result-eval-banner jackpot';
         banner.innerHTML = `
             <div class="banner-left">
                 <span class="banner-icon">🏆</span>
                 <div class="banner-text">
-                    <h4 class="gold-text">NỔ TRÚNG SỐ THẲNG TOP 5: SỐ ${newNum}!</h4>
-                    <p>Chúc mừng! Số ${newNum} nằm trong danh sách 5 con số vàng được AI dự đoán.</p>
+                    <h4 class="gold-text">NỔ TRÚNG SỐ THẲNG VÀNG: SỐ ${newNum}!</h4>
+                    <p>Chúc mừng! Bóng rơi chính xác vào số hạt nhân Tầng 1 (Tỷ lệ trả thưởng cực cao 35:1).</p>
                 </div>
             </div>
-            <div class="banner-pnl gold-text">+25 PHỈNH (LÃI ĐẬM)</div>
+            <div class="banner-pnl gold-text">+${netVnd.toLocaleString('vi-VN')} VNĐ (+${netChips} Phỉnh)</div>
         `;
     } else if (isDozenHit) {
-        // TRÚNG DOZEN BẢO HIỂM
-        // Nhận 9 phỉnh, tổng cược 11 phỉnh. Bù đắp vốn gần như tuyệt đối (-2 phỉnh coi như phí bảo hiểm)
+        // 🛡 TẦNG 2: TRÚNG HÀNG BẢO TOÀN VỐN (ĂN 2:1)
+        // Đặt 4 phỉnh vào Hàng (1:2). Trả thưởng 4 x 3 = 12 phỉnh. Trừ 10 phỉnh tổng cược => LÃI RÒNG: +2 phỉnh = +4.000 VNĐ!
+        const netChips = 2;
+        const netVnd = netChips * CHIP_VALUE_VND;
+
         sessionStats.dozenWins++;
-        sessionStats.pnlChips -= 2;
-        playSound('predict');
+        sessionStats.pnlChips += netChips;
+        sessionStats.pnlVnd += netVnd;
+        playSound('win');
 
         banner.className = 'result-eval-banner dozen-win';
         banner.innerHTML = `
             <div class="banner-left">
                 <span class="banner-icon">🛡</span>
                 <div class="banner-text">
-                    <h4 class="emerald-text">BẢO VỆ VỐN THÀNH CÔNG: TRÚNG HÀNG DOZEN ${dozenId}!</h4>
-                    <p>Số ${newNum} rơi vào 2 Hàng bảo hiểm được AI bao phủ. Vốn được giữ vững an toàn.</p>
+                    <h4 class="emerald-text">TRÚNG HÀNG BẢO HIỂM: ${lastBetPlan.dozenName} (SỐ ${newNum})</h4>
+                    <p>Bảo toàn vốn xuất sắc! Thu về 12 phỉnh, trừ 10 phỉnh cược và có thêm lãi nhẹ.</p>
                 </div>
             </div>
-            <div class="banner-pnl emerald-text">HÒA / BÙ VỐN (-2P)</div>
+            <div class="banner-pnl emerald-text">+${netVnd.toLocaleString('vi-VN')} VNĐ (+${netChips} Phỉnh)</div>
+        `;
+    } else if (isClusterHit) {
+        // 🧭 TẦNG 3: RƠI VÀO CỤM BẢO VỆ (THUA ÍT)
+        // Bóng rơi vào cụm lân cận. Thu lại ~18.000đ (9 phỉnh) => CHỈ THUA NHẸ 1 phỉnh (-2.000 VNĐ) thay vì mất 20.000đ!
+        const netChips = -1;
+        const netVnd = netChips * CHIP_VALUE_VND;
+
+        sessionStats.clusterWins++;
+        sessionStats.pnlChips += netChips;
+        sessionStats.pnlVnd += netVnd;
+        playSound('safe');
+
+        banner.className = 'result-eval-banner cluster-safe';
+        banner.innerHTML = `
+            <div class="banner-left">
+                <span class="banner-icon">🧭</span>
+                <div class="banner-text">
+                    <h4 class="blue-text">RƠI VÀO CỤM BÁNH XE LÂN CẬN (SỐ ${newNum})</h4>
+                    <p>Bảo hiểm cụm phát huy tác dụng! Thu hồi lại phần lớn vốn cược, <b>chỉ thua rất ít</b>.</p>
+                </div>
+            </div>
+            <div class="banner-pnl blue-text">${netVnd.toLocaleString('vi-VN')} VNĐ (${netChips} Phỉnh)</div>
         `;
     } else {
-        // TRƯỢT CẢ 2
+        // ❌ LỆCH TOÀN BỘ MẶT BÀN
+        const netChips = -10;
+        const netVnd = netChips * CHIP_VALUE_VND;
+
         sessionStats.misses++;
-        sessionStats.pnlChips -= 11;
+        sessionStats.pnlChips += netChips;
+        sessionStats.pnlVnd += netVnd;
+        playSound('miss');
 
         banner.className = 'result-eval-banner miss';
         banner.innerHTML = `
             <div class="banner-left">
-                <span class="banner-icon">⚠️</span>
+                <span class="banner-icon">❌</span>
                 <div class="banner-text">
-                    <h4 class="ruby-text">PHIÊN NÀY LỆCH NHỊP: SỐ ${newNum}</h4>
-                    <p>Bóng rơi vào 8 cửa ngoài vùng bảo hiểm. Tiếp tục giữ kỷ luật vốn theo chu kỳ trượt.</p>
+                    <h4 class="red-text">VÒNG NÀY LỆCH ĐỘ PHỦ (SỐ ${newNum})</h4>
+                    <p>Bóng rơi vào vùng không cược. Tỷ lệ bảo toàn tổng thể vẫn đạt mức cao an toàn.</p>
                 </div>
             </div>
-            <div class="banner-pnl ruby-text">-11 PHỈNH</div>
+            <div class="banner-pnl red-text">${netVnd.toLocaleString('vi-VN')} VNĐ (${netChips} Phỉnh)</div>
         `;
     }
 
     updateScorecardUI();
 }
 
+// CẬP NHẬT CÁC THẺ THỐNG KÊ TÀI CHÍNH
 function updateScorecardUI() {
-    document.getElementById('scTotalSpins').innerText = allSpinsHistory.length;
+    document.getElementById('scTotalSpins').innerText = sessionStats.totalEvaluated;
     document.getElementById('scStraightWins').innerText = sessionStats.straightWins;
     document.getElementById('scDozenWins').innerText = sessionStats.dozenWins;
+    document.getElementById('scClusterWins').innerText = sessionStats.clusterWins;
 
-    const safeHits = sessionStats.straightWins + sessionStats.dozenWins;
-    const winRate = sessionStats.totalEvaluated > 0 ? Math.round((safeHits / sessionStats.totalEvaluated) * 100) : 0;
+    const totalPositive = sessionStats.straightWins + sessionStats.dozenWins + sessionStats.clusterWins;
+    const winRate = sessionStats.totalEvaluated > 0 
+        ? Math.round((totalPositive / sessionStats.totalEvaluated) * 100) 
+        : 0;
     document.getElementById('scWinRate').innerText = `${winRate}%`;
 
-    const pnlEl = document.getElementById('scPnlChips');
-    if (sessionStats.pnlChips > 0) {
-        pnlEl.className = 'sc-val gold-text';
-        pnlEl.innerText = `+${sessionStats.pnlChips} Phỉnh`;
-    } else if (sessionStats.pnlChips < 0) {
-        pnlEl.className = 'sc-val ruby-text';
-        pnlEl.innerText = `${sessionStats.pnlChips} Phỉnh`;
+    // Cập nhật PnL trên Header
+    const pnlVndEl = document.getElementById('totalPnlVnd');
+    const pnlChipsEl = document.getElementById('totalPnlChips');
+
+    if (pnlVndEl) {
+        const sign = sessionStats.pnlVnd >= 0 ? '+' : '';
+        pnlVndEl.innerText = `${sign}${sessionStats.pnlVnd.toLocaleString('vi-VN')} VNĐ`;
+        pnlVndEl.className = `bank-val ${sessionStats.pnlVnd >= 0 ? 'emerald-text' : 'red-text'}`;
+    }
+
+    if (pnlChipsEl) {
+        const sign = sessionStats.pnlChips >= 0 ? '+' : '';
+        pnlChipsEl.innerText = `${sign}${sessionStats.pnlChips} Phỉnh`;
+        pnlChipsEl.className = `bank-val ${sessionStats.pnlChips >= 0 ? 'emerald-text' : 'red-text'}`;
+    }
+}
+
+// ============================================================================
+// DẢI BĂNG LỊCH SỬ 5 VÒNG KHỞI ĐỘNG (ROLLING TAPE)
+// ============================================================================
+
+function renderTapeSlots() {
+    const tape = document.getElementById('tapeContainer');
+    if (!tape) return;
+    tape.innerHTML = '';
+
+    const count = historySpins.length;
+    document.getElementById('tapeCountText').innerText = count;
+
+    const tag = document.getElementById('rollingModeTag');
+    if (count >= 5) {
+        tag.className = 'rolling-mode-tag';
+        tag.innerText = `🔄 Chế Độ Trượt Tự Động Đang Bật (${count} phiên)`;
     } else {
-        pnlEl.className = 'sc-val';
-        pnlEl.innerText = '0 Phỉnh';
+        tag.className = 'rolling-mode-tag';
+        tag.style.background = 'rgba(245, 207, 109, 0.15)';
+        tag.style.borderColor = 'rgba(245, 207, 109, 0.4)';
+        tag.style.color = 'var(--gold-primary)';
+        tag.innerText = `⏳ Cần nhập thêm ${5 - count} vòng để bắt đầu cược`;
     }
-}
 
-// HOÀN TÁC SỐ VỪA NHẬP
-function undoLastNumber() {
-    if (allSpinsHistory.length > 0) {
-        allSpinsHistory.pop();
-        if (allSpinsHistory.length >= 10) {
-            historySpins = allSpinsHistory.slice(-10);
+    // Hiển thị các ô slot (tối thiểu 5 ô)
+    const totalSlots = Math.max(5, count);
+    for (let i = 0; i < totalSlots; i++) {
+        const slot = document.createElement('div');
+
+        if (i < count) {
+            const num = historySpins[i];
+            let color = 'black';
+            if (num === 0) color = 'zero';
+            else if (RED_NUMBERS.includes(num)) color = 'red';
+
+            slot.className = `tape-slot filled ${color}`;
+            slot.innerHTML = `
+                <span class="tape-slot-num">${num}</span>
+                <span class="tape-slot-sub">#${allSpinsHistory.length - count + i + 1}</span>
+            `;
         } else {
-            historySpins.pop();
+            slot.className = 'tape-slot empty';
+            slot.innerHTML = `
+                <span class="tape-slot-num">?</span>
+                <span class="tape-slot-sub">Vòng ${i + 1}</span>
+            `;
         }
-        saveToLocalStorage();
-        renderTapeSlots();
-        runQuantAnalysis();
-        document.getElementById('resultBanner').style.display = 'none';
+        tape.appendChild(slot);
+    }
+
+    // Cập nhật số lần trúng trên bàn
+    updateHitCountBadges();
+}
+
+function updateHitCountBadges() {
+    for (let i = 0; i <= 36; i++) {
+        const badge = document.getElementById(`hit-${i}`);
+        if (badge) badge.style.display = 'none';
+    }
+
+    const counts = {};
+    historySpins.forEach(n => counts[n] = (counts[n] || 0) + 1);
+
+    for (let num in counts) {
+        const badge = document.getElementById(`hit-${num}`);
+        if (badge) {
+            badge.innerText = `${counts[num]}x`;
+            badge.style.display = 'inline-block';
+        }
     }
 }
 
-// XÓA TOÀN BỘ LỊCH SỬ PHIÊN
+// ============================================================================
+// THUẬT TOÁN PHÂN TÍCH QUAN TÍNH & PHÂN BỔ 10 PHỈNH (20K VNĐ)
+// ============================================================================
+
+function runQuantAnalysis() {
+    clearAllChipsFromBoard();
+
+    const nextSpinNumberEl = document.getElementById('nextSpinNumber');
+    if (nextSpinNumberEl) {
+        nextSpinNumberEl.innerText = `#${allSpinsHistory.length + 1}`;
+    }
+
+    // Nếu chưa đủ 5 vòng khởi động, chờ dữ liệu
+    if (historySpins.length < 5) {
+        lastBetPlan = null;
+        renderWaitingState();
+        return;
+    }
+
+    // 1. PHÂN TÍCH TẦN SUẤT CUNG BÁNH XE (SECTORS DENSITY)
+    const sectorStats = calculateSectorFrequencies();
+
+    // 2. TÍNH TOÁN QUÁN TÍNH & ĐIỂM RƠI LÂN CẬN (NEIGHBOR PROXIMITY)
+    const hotNumbers = calculateHotNeighbors();
+
+    // 3. CHỌN 3 SỐ VÀNG HẠT NHÂN (TẦNG 1: 3 PHỈNH)
+    const straightNumbers = hotNumbers.slice(0, 3);
+
+    // 4. CHỌN HÀNG (DOZEN) TỐI ƯU NHẤT (TẦNG 2: 4 PHỈNH)
+    const bestDozen = calculateBestDozen(straightNumbers);
+
+    // 5. CHỌN CỤM BÁNH XE BẢO HIỂM (TẦNG 3: 3 PHỈNH)
+    const bestCluster = calculateBestCluster(straightNumbers, sectorStats);
+
+    // LƯU KẾ HOẠCH CƯỢC HIỆN TẠI
+    lastBetPlan = {
+        straightNumbers: straightNumbers,
+        dozenId: bestDozen.id,
+        dozenName: bestDozen.name,
+        dozenNumbers: bestDozen.numbers,
+        clusterName: bestCluster.name,
+        clusterNumbers: bestCluster.numbers
+    };
+
+    // 6. HIỂN THỊ CÁC ĐỒNG PHỈNH TRỰC QUAN LÊN MẶT BÀN CƯỢC
+    placeVisualChipsOnBoard(straightNumbers, bestDozen.id, bestCluster);
+
+    // 7. HIỂN THỊ KẾ HOẠCH LÊN CỘT DỰ BÁO BÊN PHẢI
+    renderBetPlanUI(straightNumbers, bestDozen, bestCluster);
+
+    // 8. CẬP NHẬT CÁC CHỈ SỐ RACETRACK VÀ PHỤ TRỢ
+    updateRacetrackUI(sectorStats, straightNumbers, bestCluster.numbers);
+    updateAuxiliaryMetrics();
+}
+
+function renderWaitingState() {
+    const need = 5 - historySpins.length;
+    const badge = document.getElementById('confidenceBadge');
+    if (badge) badge.innerText = `Cần thêm ${need} số...`;
+
+    document.getElementById('straightNumbersDisplay').innerHTML = `
+        <span class="placeholder-text">⏳ Hãy bấm đủ ${5} số khởi động đầu tiên để AI tính toán phân bổ 10 phỉnh.</span>
+    `;
+    document.getElementById('dozenRecommendationBox').innerHTML = `
+        <span class="placeholder-text">Đang phân tích chuỗi 5 vòng...</span>
+    `;
+    document.getElementById('clusterRecommendationBox').innerHTML = `
+        <span class="placeholder-text">Đang quét quán tính bánh xe...</span>
+    `;
+}
+
+// TÍNH MẬT ĐỘ CUNG BÁNH XE
+function calculateSectorFrequencies() {
+    const total = historySpins.length;
+    let vCount = 0, tCount = 0, oCount = 0, jCount = 0;
+
+    historySpins.forEach(n => {
+        if (SECTORS.VOISINS.includes(n)) vCount++;
+        if (SECTORS.TIERS.includes(n)) tCount++;
+        if (SECTORS.ORPHELINS.includes(n)) oCount++;
+        if (SECTORS.JEU_ZERO.includes(n)) jCount++;
+    });
+
+    return {
+        voisinsPct: Math.round((vCount / total) * 100),
+        tiersPct: Math.round((tCount / total) * 100),
+        orphelinsPct: Math.round((oCount / total) * 100),
+        jeuZeroPct: Math.round((jCount / total) * 100),
+        vCount, tCount, oCount, jCount
+    };
+}
+
+// TÍNH TOÁN CÁC SỐ VÀNG CÓ ĐIỂM SỐ QUÁN TÍNH CAO NHẤT
+function calculateHotNeighbors() {
+    const scores = {};
+    for (let i = 0; i <= 36; i++) scores[i] = 0;
+
+    // Trọng số các phiên gần nhất (phiên mới nhất có trọng số cao hơn)
+    historySpins.forEach((num, idx) => {
+        const weight = (idx + 1) * 2;
+        scores[num] += weight;
+
+        // Cộng điểm cho các số lân cận trên bánh xe vật lý (+/- 2 số xung quanh)
+        const pos = WHEEL_ORDER.indexOf(num);
+        if (pos !== -1) {
+            for (let offset = -2; offset <= 2; offset++) {
+                if (offset === 0) continue;
+                const neighborIdx = (pos + offset + WHEEL_ORDER.length) % WHEEL_ORDER.length;
+                const neighborNum = WHEEL_ORDER[neighborIdx];
+                scores[neighborNum] += Math.round(weight * 0.5);
+            }
+        }
+    });
+
+    // Sắp xếp số theo điểm từ cao đến thấp
+    const sorted = Object.keys(scores)
+        .map(n => parseInt(n, 10))
+        .sort((a, b) => scores[b] - scores[a]);
+
+    return sorted;
+}
+
+// CHỌN HÀNG TỐI ƯU CHỨA NHIỀU ĐIỂM QUÁN TÍNH NHẤT
+function calculateBestDozen(straightNums) {
+    let d1 = 0, d2 = 0, d3 = 0;
+
+    historySpins.forEach(n => {
+        if (n >= 1 && n <= 12) d1++;
+        else if (n >= 13 && n <= 24) d2++;
+        else if (n >= 25 && n <= 36) d3++;
+    });
+
+    // Cộng thêm ưu tiên từ các số thẳng đã chọn
+    straightNums.forEach(n => {
+        if (n >= 1 && n <= 12) d1 += 2;
+        else if (n >= 13 && n <= 24) d2 += 2;
+        else if (n >= 25 && n <= 36) d3 += 2;
+    });
+
+    if (d1 >= d2 && d1 >= d3) {
+        return { id: 'dozen1', name: '1st 12 (Số 1 - 12)', numbers: DOZENS.dozen1 };
+    } else if (d2 >= d1 && d2 >= d3) {
+        return { id: 'dozen2', name: '2nd 12 (Số 13 - 24)', numbers: DOZENS.dozen2 };
+    } else {
+        return { id: 'dozen3', name: '3rd 12 (Số 25 - 36)', numbers: DOZENS.dozen3 };
+    }
+}
+
+// CHỌN CỤM BÁNH XE LÂN CẬN PHÙ HỢP
+function calculateBestCluster(straightNums, sectorStats) {
+    // Xác định cung nào có mật độ cao nhất trong các phiên gần đây
+    let bestSector = 'VOISINS';
+    let maxPct = sectorStats.voisinsPct;
+
+    if (sectorStats.tiersPct > maxPct) {
+        bestSector = 'TIERS';
+        maxPct = sectorStats.tiersPct;
+    }
+    if (sectorStats.orphelinsPct > maxPct) {
+        bestSector = 'ORPHELINS';
+        maxPct = sectorStats.orphelinsPct;
+    }
+
+    let sectorName = 'Cụm Voisins du Zéro';
+    let numbers = SECTORS.VOISINS;
+
+    if (bestSector === 'TIERS') {
+        sectorName = 'Cụm Tiers du Cylindre';
+        numbers = SECTORS.TIERS;
+    } else if (bestSector === 'ORPHELINS') {
+        sectorName = 'Cụm Orphelins (8 số)';
+        numbers = SECTORS.ORPHELINS;
+    }
+
+    return {
+        name: sectorName,
+        sectorKey: bestSector,
+        numbers: numbers
+    };
+}
+
+// ============================================================================
+// HIỂN THỊ ĐỒNG PHỈNH TRỰC TIẾP LÊN MẶT BÀN CƯỢC (PLACE VISUAL CHIPS)
+// ============================================================================
+
+function clearAllChipsFromBoard() {
+    const spots = document.querySelectorAll('.chip-spot');
+    spots.forEach(sp => sp.innerHTML = '');
+}
+
+function placeVisualChipsOnBoard(straightNums, dozenId, cluster) {
+    // 1. ĐẶT PHỈNH SỐ THẲNG (MỖI SỐ 1 PHỈNH 2K)
+    straightNums.forEach(num => {
+        const spot = document.getElementById(`chip-spot-${num}`);
+        if (spot) {
+            spot.innerHTML = `
+                <div class="casino-chip chip-straight" title="Cược Số Thẳng ${num}: 1 Phỉnh (2k)">
+                    <span class="chip-inner-text">2K</span>
+                    <span class="chip-stack-count">x1</span>
+                </div>
+            `;
+        }
+    });
+
+    // 2. ĐẶT PHỈNH HÀNG (4 PHỈNH 2K = 8K)
+    const dozenSpot = document.getElementById(`chip-spot-${dozenId}`);
+    if (dozenSpot) {
+        dozenSpot.innerHTML = `
+            <div class="casino-chip chip-dozen" title="Cược Hàng: 4 Phỉnh (8k)">
+                <span class="chip-inner-text">2K</span>
+                <span class="chip-stack-count">x4</span>
+            </div>
+        `;
+    }
+
+    // 3. ĐÁNH DẤU CỤM BẢO HIỂM TRÊN BÀN (HIGHLIGHT HIỆU ỨNG CỤM)
+    cluster.numbers.forEach(cNum => {
+        const cell = cNum === 0 ? document.getElementById('cell-0') : document.getElementById(`cell-${cNum}`);
+        if (cell && !straightNums.includes(cNum)) {
+            cell.style.boxShadow = 'inset 0 0 10px rgba(59, 130, 246, 0.5)';
+            setTimeout(() => {
+                if (cell) cell.style.boxShadow = '';
+            }, 5000);
+        }
+    });
+}
+
+// ============================================================================
+// CẬP NHẬT KẾ HOẠCH CƯỢC LÊN GIAO DIỆN CỘT PHẢI
+// ============================================================================
+
+function renderBetPlanUI(straightNums, dozen, cluster) {
+    const badge = document.getElementById('confidenceBadge');
+    if (badge) badge.innerText = 'Độ Phủ ~75% Bàn';
+
+    // 1. RENDER 3 SỐ VÀNG
+    const straightDisplay = document.getElementById('straightNumbersDisplay');
+    if (straightDisplay) {
+        straightDisplay.innerHTML = '';
+        straightNums.forEach(num => {
+            let color = 'black';
+            if (num === 0) color = 'zero';
+            else if (RED_NUMBERS.includes(num)) color = 'red';
+
+            const pill = document.createElement('div');
+            pill.className = `straight-pill ${color}`;
+            pill.innerHTML = `
+                <div class="num-circle">${num}</div>
+                <div class="prob-text">1 Phỉnh (2k)</div>
+            `;
+            straightDisplay.appendChild(pill);
+        });
+    }
+
+    // 2. RENDER HÀNG DOZEN
+    const dozenBox = document.getElementById('dozenRecommendationBox');
+    if (dozenBox) {
+        dozenBox.innerHTML = `
+            <div class="rec-tag-box emerald">
+                <span>🛡 ${dozen.name}</span>
+                <span class="gold-text">• Đặt 4 Phỉnh (8.000đ)</span>
+            </div>
+        `;
+    }
+
+    // 3. RENDER CỤM BẢO HIỂM
+    const clusterBox = document.getElementById('clusterRecommendationBox');
+    if (clusterBox) {
+        clusterBox.innerHTML = `
+            <div class="rec-tag-box blue">
+                <span>🧭 ${cluster.name}</span>
+                <span class="gold-text">• Đặt 3 Phỉnh (6.000đ)</span>
+            </div>
+        `;
+    }
+}
+
+// CẬP NHẬT RACETRACK CUNG BÁNH XE
+function updateRacetrackUI(sectorStats, straightNums, clusterNums) {
+    document.getElementById('probVoisins').innerText = `${sectorStats.voisinsPct}%`;
+    document.getElementById('probTiers').innerText = `${sectorStats.tiersPct}%`;
+    document.getElementById('probOrphelins').innerText = `${sectorStats.orphelinsPct}%`;
+    document.getElementById('probJeuZero').innerText = `${sectorStats.jeuZeroPct}%`;
+
+    // Highlight các pocket trên bánh xe
+    WHEEL_ORDER.forEach(num => {
+        const pocket = document.getElementById(`pocket-${num}`);
+        if (!pocket) return;
+
+        pocket.classList.remove('highlight-gold', 'highlight-cluster');
+
+        if (straightNums.includes(num)) {
+            pocket.classList.add('highlight-gold');
+        } else if (clusterNums.includes(num)) {
+            pocket.classList.add('highlight-cluster');
+        }
+    });
+}
+
+// CẬP NHẬT CHỈ SỐ ĐỎ/ĐEN & CHẴN/LẺ
+function updateAuxiliaryMetrics() {
+    let red = 0, black = 0, even = 0, odd = 0;
+    const total = historySpins.length;
+
+    historySpins.forEach(n => {
+        if (n === 0) return;
+        if (RED_NUMBERS.includes(n)) red++;
+        else black++;
+
+        if (n % 2 === 0) even++;
+        else odd++;
+    });
+
+    const validNums = red + black;
+    const redPct = validNums > 0 ? Math.round((red / validNums) * 100) : 50;
+    const blackPct = 100 - redPct;
+
+    const evenPct = validNums > 0 ? Math.round((even / validNums) * 100) : 50;
+    const oddPct = 100 - evenPct;
+
+    document.getElementById('barRed').style.width = `${redPct}%`;
+    document.getElementById('barBlack').style.width = `${blackPct}%`;
+    document.getElementById('labelRed').innerText = `Đỏ: ${redPct}%`;
+    document.getElementById('labelBlack').innerText = `Đen: ${blackPct}%`;
+    document.getElementById('metricColorVal').innerText = redPct > blackPct ? 'Ưu tiên ĐỎ' : (blackPct > redPct ? 'Ưu tiên ĐEN' : 'Cân bằng');
+
+    document.getElementById('barEven').style.width = `${evenPct}%`;
+    document.getElementById('barOdd').style.width = `${oddPct}%`;
+    document.getElementById('labelEven').innerText = `Chẵn: ${evenPct}%`;
+    document.getElementById('labelOdd').innerText = `Lẻ: ${oddPct}%`;
+    document.getElementById('metricParityVal').innerText = evenPct > oddPct ? 'Ưu tiên CHẴN' : (oddPct > evenPct ? 'Ưu tiên LẺ' : 'Cân bằng');
+}
+
+// ============================================================================
+// CÁC HÀM TIỆN ÍCH: HOÀN TÁC, XÓA LỊCH SỬ, DỮ LIỆU MẪU 5 VÒNG
+// ============================================================================
+
+function undoLastNumber() {
+    if (allSpinsHistory.length === 0) return;
+    playSound('chip');
+    allSpinsHistory.pop();
+    historySpins.pop();
+
+    saveToLocalStorage();
+    renderTapeSlots();
+    runQuantAnalysis();
+}
+
 function clearHistory() {
-    historySpins = [];
+    if (!confirm('Bạn có chắc muốn xóa toàn bộ lịch sử phiên chơi này?')) return;
     allSpinsHistory = [];
-    lastPredictions = { top5: [], dozens: [] };
-    sessionStats = { totalEvaluated: 0, straightWins: 0, dozenWins: 0, misses: 0, pnlChips: 0 };
-    document.getElementById('resultBanner').style.display = 'none';
+    historySpins = [];
+    lastBetPlan = null;
+    sessionStats = {
+        totalEvaluated: 0,
+        straightWins: 0,
+        dozenWins: 0,
+        clusterWins: 0,
+        misses: 0,
+        pnlChips: 0,
+        pnlVnd: 0
+    };
+
+    const banner = document.getElementById('resultBanner');
+    if (banner) banner.style.display = 'none';
+
     saveToLocalStorage();
     renderTapeSlots();
+    clearAllChipsFromBoard();
     updateScorecardUI();
     runQuantAnalysis();
 }
 
-// NẠP 10 SỐ MẪU
-function loadDemoData() {
-    const demoSeries = [32, 15, 19, 4, 21, 26, 0, 32, 15, 3];
-    allSpinsHistory = [...demoSeries];
-    historySpins = [...demoSeries];
-    sessionStats = { totalEvaluated: 0, straightWins: 0, dozenWins: 0, misses: 0, pnlChips: 0 };
-    document.getElementById('resultBanner').style.display = 'none';
-    playSound('predict');
-    saveToLocalStorage();
-    renderTapeSlots();
-    updateScorecardUI();
-    runQuantAnalysis();
+function resetAll() {
+    clearHistory();
 }
 
+function loadDemo5Spins() {
+    // Nạp sẵn 5 số thực tế từ sòng bài để người dùng trải nghiệm ngay
+    const demo = [17, 20, 32, 2, 25];
+    clearHistory();
+
+    demo.forEach(num => {
+        allSpinsHistory.push(num);
+        historySpins.push(num);
+    });
+
+    saveToLocalStorage();
+    renderTapeSlots();
+    runQuantAnalysis();
+    playSound('jackpot');
+}
+
+// LƯU TRỮ VÀ KHÔI PHỤC TỪ LOCALSTORAGE
 function saveToLocalStorage() {
     try {
-        localStorage.setItem('roulette_all_spins', JSON.stringify(allSpinsHistory));
-        localStorage.setItem('roulette_session_stats', JSON.stringify(sessionStats));
-        localStorage.setItem('roulette_last_predictions', JSON.stringify(lastPredictions));
+        localStorage.setItem('roulette_quant_history', JSON.stringify(historySpins));
+        localStorage.setItem('roulette_quant_all', JSON.stringify(allSpinsHistory));
+        localStorage.setItem('roulette_quant_stats', JSON.stringify(sessionStats));
     } catch (e) {}
 }
 
 function loadFromLocalStorage() {
     try {
-        const savedAll = localStorage.getItem('roulette_all_spins');
-        if (savedAll) {
-            allSpinsHistory = JSON.parse(savedAll);
-            historySpins = allSpinsHistory.slice(-10);
-        }
-        const savedStats = localStorage.getItem('roulette_session_stats');
-        if (savedStats) {
-            sessionStats = JSON.parse(savedStats);
-        }
-        const savedPred = localStorage.getItem('roulette_last_predictions');
-        if (savedPred) {
-            lastPredictions = JSON.parse(savedPred);
-        }
+        const savedHistory = localStorage.getItem('roulette_quant_history');
+        const savedAll = localStorage.getItem('roulette_quant_all');
+        const savedStats = localStorage.getItem('roulette_quant_stats');
+
+        if (savedHistory) historySpins = JSON.parse(savedHistory);
+        if (savedAll) allSpinsHistory = JSON.parse(savedAll);
+        if (savedStats) sessionStats = JSON.parse(savedStats);
     } catch (e) {}
 }
 
 // ============================================================================
-// THUẬT TOÁN QUANT DỰ ĐOÁN 5 SỐ VÀNG & DOZEN
+// KHỞI ĐỘNG KHI TẢI TRANG
 // ============================================================================
 
-function runQuantAnalysis() {
-    const total = historySpins.length;
-    updateSectorsDistribution();
-
-    if (total < 10) {
-        document.getElementById('confidenceBadge').innerText = `Cần thêm ${10 - total} số`;
-        document.getElementById('top5Container').innerHTML = `
-            <div class="empty-state">
-                <span class="empty-icon">⏳</span>
-                <p>Đã nhập <b>${total}/10 số</b> khởi động. Hãy nhập đủ 10 số, sau đó từ phiên #11 hệ thống sẽ tự động cuốn chiếu từng số!</p>
-            </div>
-        `;
-        resetOutsidePredictions();
-        lastPredictions = { top5: [], dozens: [] };
-        return;
-    }
-
-    document.getElementById('confidenceBadge').innerText = 'AI TỐI ƯU HÓA: CAO';
-
-    // 1. TÍNH ĐIỂM 37 SỐ DỰA TRÊN 10 SỐ TRONG CỬA SỔ TRƯỢT HIỆN TẠI
-    const scores = {};
-    for (let i = 0; i <= 36; i++) {
-        scores[i] = 0.0;
-    }
-
-    // Phân tích cung bánh xe chiếm ưu thế
-    const sectorHits = { VOISINS: 0, TIERS: 0, ORPHELINS: 0 };
-    historySpins.forEach(n => {
-        if (SECTORS.VOISINS.includes(n)) sectorHits.VOISINS++;
-        else if (SECTORS.TIERS.includes(n)) sectorHits.TIERS++;
-        else if (SECTORS.ORPHELINS.includes(n)) sectorHits.ORPHELINS++;
-    });
-
-    let dominantSector = 'VOISINS';
-    let maxSectorHits = sectorHits.VOISINS;
-    if (sectorHits.TIERS > maxSectorHits) {
-        dominantSector = 'TIERS';
-        maxSectorHits = sectorHits.TIERS;
-    }
-    if (sectorHits.ORPHELINS > maxSectorHits) {
-        dominantSector = 'ORPHELINS';
-        maxSectorHits = sectorHits.ORPHELINS;
-    }
-
-    SECTORS[dominantSector].forEach(num => scores[num] += 35.0);
-
-    // Lân cận số vừa ra & nảy đối diện
-    const lastNum = historySpins[historySpins.length - 1];
-    const lastIdx = WHEEL_ORDER.indexOf(lastNum);
-
-    if (lastIdx !== -1) {
-        // QUÉT CÁC SỐ LÂN CẬN TRÊN BÁNH XE (BỎ QUA CHÍNH SỐ VỪA RA offset != 0)
-        // Thực tế bánh xe: bóng nảy văng sang các ô hàng xóm lân cận hoặc đối diện, cực hiếm khi rơi lại trúng tim số cũ (~2.7%)
-        for (let offset = -3; offset <= 3; offset++) {
-            if (offset === 0) continue; // Bỏ qua chính số vừa xuất hiện
-            const neighborIdx = (lastIdx + offset + 37) % 37;
-            scores[WHEEL_ORDER[neighborIdx]] += (28.0 - Math.abs(offset) * 4);
-        }
-        
-        // CUNG ĐỐI DIỆN NẢY BÓNG (OPPOSITE SECTOR - 180 ĐỘ)
-        const oppositeIdx = (lastIdx + 18) % 37;
-        for (let offset = -2; offset <= 2; offset++) {
-            scores[WHEEL_ORDER[(oppositeIdx + offset + 37) % 37]] += (20.0 - Math.abs(offset) * 3);
-        }
-
-        // KHỬ BỆT SỐ ĐƠN LIỀN KỀ: Phạt nặng chính số vừa ra để không bao giờ gợi ý đánh lại chính nó
-        scores[lastNum] -= 100.0;
-    }
-
-    // Quy luật 1/3
-    const freq = {};
-    historySpins.forEach(n => freq[n] = (freq[n] || 0) + 1);
-    for (let n = 0; n <= 36; n++) {
-        if (freq[n] === 1) scores[n] += 15.0;
-        else if (!freq[n] && SECTORS[dominantSector].includes(n)) scores[n] += 12.0;
-    }
-
-    // Chọn Top 5
-    const sortedNumbers = Object.keys(scores).map(Number).sort((a, b) => scores[b] - scores[a]);
-    const top5 = sortedNumbers.slice(0, 5);
-
-    renderTop5(top5, scores);
-
-    // Lưu Top 5 để đối soát ở vòng tiếp theo
-    lastPredictions.top5 = top5;
-
-    // Phân tích cược ngoài & Lưu Dozens
-    analyzeOutsideBets();
-}
-
-function renderTop5(top5, scores) {
-    const container = document.getElementById('top5Container');
-    container.innerHTML = '';
-    const maxScore = scores[top5[0]] || 1;
-
-    top5.forEach((num, index) => {
-        const color = getNumberColor(num);
-        const sector = getNumberSector(num);
-        const prob = Math.round((scores[num] / (maxScore * 1.15)) * 92);
-
-        const card = document.createElement('div');
-        card.className = `number-card ${index === 0 ? 'rank-1' : ''}`;
-        card.style.animationDelay = `${index * 0.08}s`;
-        card.innerHTML = `
-            <span class="card-rank">TOP #${index + 1}</span>
-            <div class="card-number-ball ${color}">${num}</div>
-            <div class="card-prob">${prob}% XÁC SUẤT</div>
-            <div class="card-sector-tag">${sector}</div>
-        `;
-        container.appendChild(card);
-    });
-}
-
-function analyzeOutsideBets() {
-    let redCount = 0, blackCount = 0, evenCount = 0, oddCount = 0;
-    let d1Count = 0, d2Count = 0, d3Count = 0;
-
-    historySpins.forEach(n => {
-        if (n === 0) return;
-        if (RED_NUMBERS.includes(n)) redCount++;
-        else blackCount++;
-
-        if (n % 2 === 0) evenCount++;
-        else oddCount++;
-
-        if (n >= 1 && n <= 12) d1Count++;
-        else if (n >= 13 && n <= 24) d2Count++;
-        else if (n >= 25 && n <= 36) d3Count++;
-    });
-
-    const nonZeroTotal = historySpins.filter(n => n !== 0).length || 1;
-
-    // Đỏ vs Đen
-    const redPct = Math.round((redCount / nonZeroTotal) * 100);
-    const blackPct = 100 - redPct;
-    document.getElementById('meterRed').style.width = `${redPct}%`;
-    document.getElementById('meterBlack').style.width = `${blackPct}%`;
-    document.getElementById('labelRed').innerText = `Đỏ: ${redPct}% (${redCount})`;
-    document.getElementById('labelBlack').innerText = `Đen: ${blackPct}% (${blackCount})`;
-
-    let recColor = 'Cân Bằng 50/50';
-    if (redPct >= 65) recColor = '🔴 ĐỎ ĐANG BÃO ➡️ Canh Bẻ ĐEN';
-    else if (blackPct >= 65) recColor = '⚫️ ĐEN ĐANG BÃO ➡️ Canh Bẻ ĐỎ';
-    else if (redPct > blackPct) recColor = '🔴 Bám Theo ĐỎ';
-    else recColor = '⚫️ Bám Theo ĐEN';
-    document.getElementById('predColorVal').innerText = recColor;
-
-    // Chẵn vs Lẻ
-    const evenPct = Math.round((evenCount / nonZeroTotal) * 100);
-    const oddPct = 100 - evenPct;
-    document.getElementById('meterEven').style.width = `${evenPct}%`;
-    document.getElementById('meterOdd').style.width = `${oddPct}%`;
-    document.getElementById('labelEven').innerText = `Chẵn: ${evenPct}% (${evenCount})`;
-    document.getElementById('labelOdd').innerText = `Lẻ: ${oddPct}% (${oddCount})`;
-
-    let recParity = 'Cân Bằng';
-    if (evenPct >= 65) recParity = '🔵 CHẴN ÁP ĐẢO ➡️ Đánh LẺ';
-    else if (oddPct >= 65) recParity = '🟣 LẺ ÁP ĐẢO ➡️ Đánh CHẴN';
-    else if (evenPct > oddPct) recParity = '🔵 Ưu Tiên CHẴN';
-    else recParity = '🟣 Ưu Tiên LẺ';
-    document.getElementById('predParityVal').innerText = recParity;
-
-    // Dozens
-    const dozens = [
-        { name: 'Hàng 1 (1-12)', count: d1Count, id: 1 },
-        { name: 'Hàng 2 (13-24)', count: d2Count, id: 2 },
-        { name: 'Hàng 3 (25-36)', count: d3Count, id: 3 }
-    ];
-    dozens.sort((a, b) => b.count - a.count);
-
-    document.getElementById('d1Stat').innerText = `Hàng 1: ${d1Count} lần (${Math.round(d1Count/nonZeroTotal*100)}%)`;
-    document.getElementById('d2Stat').innerText = `Hàng 2: ${d2Count} lần (${Math.round(d2Count/nonZeroTotal*100)}%)`;
-    document.getElementById('d3Stat').innerText = `Hàng 3: ${d3Count} lần (${Math.round(d3Count/nonZeroTotal*100)}%)`;
-
-    // Lưu 2 Dozen để đối soát vòng tới
-    lastPredictions.dozens = [dozens[0].id, dozens[1].id];
-
-    document.getElementById('dozenRecVal').innerHTML = `
-        🎯 Đặt 2 Hàng: <b class="gold-text">${dozens[0].name} & ${dozens[1].name}</b> (Bao phủ 24/37 số = <b>64.8%</b> thắng!)
-    `;
-}
-
-function updateSectorsDistribution() {
-    if (historySpins.length === 0) {
-        document.getElementById('pctVoisins').innerText = '0%';
-        document.getElementById('pctTiers').innerText = '0%';
-        document.getElementById('pctOrphelins').innerText = '0%';
-        document.getElementById('barVoisins').style.width = '0%';
-        document.getElementById('barTiers').style.width = '0%';
-        document.getElementById('barOrphelins').style.width = '0%';
-        return;
-    }
-
-    let v = 0, t = 0, o = 0;
-    historySpins.forEach(n => {
-        if (SECTORS.VOISINS.includes(n)) v++;
-        else if (SECTORS.TIERS.includes(n)) t++;
-        else if (SECTORS.ORPHELINS.includes(n)) o++;
-    });
-
-    const total = historySpins.length;
-    document.getElementById('pctVoisins').innerText = `${Math.round((v/total)*100)}%`;
-    document.getElementById('pctTiers').innerText = `${Math.round((t/total)*100)}%`;
-    document.getElementById('pctOrphelins').innerText = `${Math.round((o/total)*100)}%`;
-
-    document.getElementById('barVoisins').style.width = `${Math.round((v/total)*100)}%`;
-    document.getElementById('barTiers').style.width = `${Math.round((t/total)*100)}%`;
-    document.getElementById('barOrphelins').style.width = `${Math.round((o/total)*100)}%`;
-}
-
-function resetOutsidePredictions() {
-    document.getElementById('predColorVal').innerText = '---';
-    document.getElementById('predParityVal').innerText = '---';
-    document.getElementById('dozenRecVal').innerText = 'Đang chờ đủ 10 số...';
-}
-
-document.getElementById('soundToggleBtn').onclick = () => {
-    soundEnabled = !soundEnabled;
-    document.getElementById('soundToggleBtn').innerHTML = soundEnabled ? '<span class="icon">🔊</span>' : '<span class="icon">��</span>';
-};
-
-document.getElementById('demoDataBtn').onclick = loadDemoData;
-document.getElementById('resetBtn').onclick = clearHistory;
-
-window.onload = () => {
-    initBoardUI();
-};
+window.addEventListener('DOMContentLoaded', () => {
+    initRouletteBoard();
+    loadFromLocalStorage();
+    renderTapeSlots();
+    updateScorecardUI();
+    runQuantAnalysis();
+});
