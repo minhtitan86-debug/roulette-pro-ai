@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roulette Quant AI Pro - Bàn Cược Trực Quan, Cược Đôi & Cụm 4 Số (Ăn/Hòa/Thua Ít)</title>
+    <title>Roulette Quant AI Pro - Nhập 10 Số • Đỏ/Đen • Ô • Cụm • Số (Ăn Liên Tục & Thua Ít)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -16,9 +16,9 @@
         <!-- HEADER TRUNG TÂM & QUẢN LÝ VỐN -->
         <header class="header">
             <div class="brand">
-                <div class="brand-badge">⚡ PRO QUANT V4.5 • SPLIT (2 SỐ) & CORNER (4 SỐ)</div>
+                <div class="brand-badge">⚡ PRO QUANT V5.0 • NHẬP 10 SỐ • ĐỎ/ĐEN • Ô • CỤM • SỐ</div>
                 <h1 class="logo-title">ROULETTE <span class="gold-text">QUANT AI</span></h1>
-                <p class="subtitle">Bàn Cược Trực Quan • Chiến Thuật ĂN - HÒA - THUA ÍT • Phủ ~85% Bàn</p>
+                <p class="subtitle">Bàn Phím Numpad Mobile • Chiến Thuật ĂN LIÊN TỤC & THUA ÍT • Phủ 85%–90% Bàn</p>
             </div>
             
             <!-- THỐNG KÊ TÀI CHÍNH & VỐN -->
@@ -53,10 +53,10 @@
                 <button id="soundToggleBtn" class="btn-icon" title="Bật/Tắt âm thanh" onclick="toggleSound()">
                     <span id="soundIcon" class="icon">🔊</span>
                 </button>
-                <button id="demoDataBtn" class="btn-secondary" onclick="loadDemo5Spins()">
-                    🎲 5 Số Mẫu
+                <button id="demoDataBtn" class="btn-secondary" onclick="loadDemo10Spins()">
+                    🎲 10 Số Mẫu
                 </button>
-                <button id="resetBtn" class="btn-danger" onclick="resetAll()">
+                <button id="resetBtn" class="btn-danger" onclick="clearHistory()">
                     🔄 Đặt Lại
                 </button>
             </div>
@@ -64,7 +64,7 @@
 
         <!-- BANNER ĐỐI SOÁT VÒNG VỪA RỒI (AUTO WIN/LOSS EVALUATOR) -->
         <div id="resultBanner" class="result-eval-banner" style="display: none;">
-            <!-- JS render kết quả ăn đậm / ăn hàng / bảo vệ cụm / hòa / thua -->
+            <!-- JS render kết quả ăn liên tục / ăn đậm / trúng đỏ đen / trúng hàng / trúng cụm -->
         </div>
 
         <!-- THẺ THEO DÕI HIỆU SUẤT TỔNG THỂ -->
@@ -74,42 +74,90 @@
                 <span class="sc-val" id="scTotalSpins">0</span>
             </div>
             <div class="scorecard-item">
-                <span class="sc-label">Nổ Số Thẳng (35:1)</span>
-                <span class="sc-val gold-text" id="scStraightWins">0</span>
+                <span class="sc-label">Trúng Đỏ/Đen (1:1)</span>
+                <span class="sc-val red-text" id="scColorWins">0</span>
             </div>
             <div class="scorecard-item">
-                <span class="sc-label">Trúng Đôi Split (17:1)</span>
-                <span class="sc-val amber-text" id="scSplitWins">0</span>
+                <span class="sc-label">Trúng Hàng Ô (2:1)</span>
+                <span class="sc-val emerald-text" id="scDozenWins">0</span>
             </div>
             <div class="scorecard-item">
-                <span class="sc-label">Vào Cụm 4 Số (8:1) / Hàng</span>
-                <span class="sc-val emerald-text" id="scCornerWins">0</span>
+                <span class="sc-label">Cụm 4 Số / Đôi / Số Thẳng</span>
+                <span class="sc-val gold-text" id="scClusterWins">0</span>
             </div>
             <div class="scorecard-item">
-                <span class="sc-label">Tỷ Lệ Ăn & Hòa Vốn</span>
+                <span class="sc-label">Tỷ Lệ Ăn Liên Tục</span>
                 <span class="sc-val emerald-text" id="scWinRate">0%</span>
             </div>
         </section>
 
-        <!-- DẢI BĂNG LỊCH SỬ (TAPE 5 VÒNG KHỞI ĐỘNG & CUỐN CHIẾU) -->
-        <section class="history-tape-section">
-            <div class="section-title-row">
-                <div class="title-with-pill">
-                    <span class="pulse-dot"></span>
-                    <span class="section-title">Chuỗi Vòng Quay Gần Nhất</span>
-                    <span id="rollingModeTag" class="rolling-mode-tag">⏳ Cần nhập 5 vòng khởi động</span>
+        <!-- ============================================================= -->
+        <!-- BẢNG NHẬP 10 SỐ KIỂU MOBILE VỚI BÀN PHÍM NUMPAD & DẢI SỐ DỌC -->
+        <!-- ============================================================= -->
+        <section class="numpad-mobile-section">
+            <div class="numpad-mobile-card">
+                <!-- THANH TIÊU ĐỀ & NÚT THAO TÁC -->
+                <div class="numpad-top-bar">
+                    <h2 class="numpad-title">Enter Numbers</h2>
+                    <div class="numpad-actions">
+                        <button class="numpad-action-btn" onclick="removeLastNumber()">Remove Last</button>
+                        <button class="numpad-action-btn" onclick="clearHistory()">Finish Game</button>
+                        <button class="numpad-action-btn highlight" onclick="loadDemo10Spins()">Demo 10 Số</button>
+                    </div>
                 </div>
-                <div class="tape-counter">
-                    <span id="tapeStatusText">Đã nhập: <b class="gold-text" id="tapeCountText">0</b>/5 vòng khởi động</span>
+
+                <div class="numpad-content-layout">
+                    <!-- DẢI CUỘN SỐ DỌC BÊN TRÁI (THEO ĐÚNG MẪU ẢNH CHỤP) -->
+                    <div class="vertical-history-container">
+                        <div class="vertical-history-strip" id="verticalHistoryStrip">
+                            <!-- Danh sách số dọc render bằng JS -->
+                        </div>
+                    </div>
+
+                    <!-- BÀN PHÍM SỐ VIRTUAL NUMPAD BÊN PHẢI -->
+                    <div class="keypad-panel">
+                        <!-- VẠCH HIỂN THỊ SỐ ĐANG GÕ -->
+                        <div class="numpad-display-area">
+                            <div class="numpad-display-text" id="numpadDisplay">
+                                <span class="digit-placeholder">&nbsp;</span>
+                            </div>
+                            <div class="numpad-display-line"></div>
+                        </div>
+
+                        <!-- LƯỚI BÀN PHÍM 12 PHÍM -->
+                        <div class="numpad-grid">
+                            <button class="numpad-key" onclick="handleNumpadDigit('1')">1</button>
+                            <button class="numpad-key" onclick="handleNumpadDigit('2')">2</button>
+                            <button class="numpad-key" onclick="handleNumpadDigit('3')">3</button>
+
+                            <button class="numpad-key" onclick="handleNumpadDigit('4')">4</button>
+                            <button class="numpad-key" onclick="handleNumpadDigit('5')">5</button>
+                            <button class="numpad-key" onclick="handleNumpadDigit('6')">6</button>
+
+                            <button class="numpad-key" onclick="handleNumpadDigit('7')">7</button>
+                            <button class="numpad-key" onclick="handleNumpadDigit('8')">8</button>
+                            <button class="numpad-key" onclick="handleNumpadDigit('9')">9</button>
+
+                            <button class="numpad-key backspace-key" onclick="handleNumpadBackspace()">⌫</button>
+                            <button class="numpad-key" onclick="handleNumpadDigit('0')">0</button>
+                            <button class="numpad-key add-key" onclick="handleNumpadAdd()">Add</button>
+                        </div>
+
+                        <!-- NÚT LỚN XEM DỰ BÁO GET PREDICTIONS -->
+                        <button class="btn-get-predictions" id="btnGetPredictions" onclick="handleGetPredictions()">
+                            Get Predictions
+                        </button>
+
+                        <!-- DÒNG NHẮC NHẬP TỐI THIỂU 10 SỐ -->
+                        <div class="numpad-status-note" id="numpadStatusText">
+                            Please enter at least the last 10 numbers. (Hiện có: 0/10)
+                        </div>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="tape-container" id="tapeContainer">
-                <!-- 5-10 ô slot render bằng JS -->
             </div>
         </section>
 
-        <!-- KHÔNG GIAN LÀM VIỆC CHÍNH -->
+        <!-- KHÔNG GIAN LÀM VIỆC CHÍNH (BÀN CƯỢC CASINO & PHIẾU CƯỢC CHI TIẾT) -->
         <main class="main-workspace">
             
             <!-- CỘT TRÁI: MẶT BÀN CƯỢC TRỰC QUAN & RACETRACK CỤM -->
@@ -118,36 +166,37 @@
                 <!-- BÀN CƯỢC CHUẨN CASINO CHÂU ÂU (ROULETTE TABLE LAYOUT) -->
                 <div class="card glass-card table-card">
                     <div class="card-header">
-                        <div class="header-with-badge">
-                            <span class="card-tag">BÀN CƯỢC TRỰC QUAN</span>
-                            <h3>Mặt Bàn Cược Quốc Tế (Hiển Thị Đầy Đủ Phỉnh Đặt)</h3>
-                            <p class="card-subtitle">👉 Bấm vào số trên bàn để nhập kết quả vừa ra. Bàn sẽ tự động hiển thị phỉnh đặt ở <b>Số thẳng</b>, <b>Cặp 2 số</b>, <b>Cụm 4 số</b> và <b>Hàng</b>!</p>
+                        <div>
+                            <span class="card-tag gold">MẶT BÀN TRỰC QUAN</span>
+                            <h3>Bàn Cược Châu Âu (37 Số & Các Vùng Đặt)</h3>
+                            <p class="card-subtitle">Có thể bấm trực tiếp lên ô số hoặc dùng bàn phím số Numpad ở trên</p>
                         </div>
-                        <div class="legend-chips">
+                        <div class="legend-badges">
+                            <span class="chip-legend color">🔴⚫ <b>Đỏ/Đen:</b> 1:1</span>
                             <span class="chip-legend straight">🟡 <b>Số thẳng:</b> 35:1</span>
                             <span class="chip-legend split">🟠 <b>Cặp đôi:</b> 17:1</span>
                             <span class="chip-legend corner">🟣 <b>Cụm 4 số:</b> 8:1</span>
-                            <span class="chip-legend dozen">🟢 <b>Hàng Tá:</b> 2:1</span>
+                            <span class="chip-legend dozen">🟢 <b>Hàng:</b> 2:1</span>
                         </div>
                     </div>
 
-                    <!-- CONTAINER MẶT BÀN CƯỢC -->
+                    <!-- KHUNG BÀN CƯỢC CHUẨN CASINO CHÂU ÂU -->
                     <div class="roulette-table-wrapper">
-                        <div class="roulette-table" id="rouletteTable">
+                        <div class="roulette-board-layout">
                             
-                            <!-- Ô SỐ 0 (GREEN ZERO) -->
+                            <!-- Ô SỐ 0 (ZERO LỚN BÊN TRÁI) -->
                             <div class="table-cell zero-cell" id="cell-0" onclick="handleNumberClick(0)">
                                 <span class="cell-number">0</span>
                                 <div class="chip-spot" id="chip-spot-0"></div>
                                 <span class="hit-badge" id="hit-0">0x</span>
                             </div>
 
-                            <!-- LƯỚI 36 SỐ CHÍNH (3 HÀNG x 12 CỘT) -->
+                            <!-- LƯỚI 36 SỐ CHÍNH (3 HÀNG X 12 CỘT) -->
                             <div class="numbers-grid-container" id="numbersGridContainer">
-                                <!-- 36 số được tạo bằng JS -->
+                                <!-- 36 số được tạo bằng JavaScript -->
                             </div>
 
-                            <!-- CỘT CƯỢC 2 TO 1 (3 Ô BÊN PHẢI) -->
+                            <!-- 3 Ô CƯỢC CỘT (2 TO 1) BÊN PHẢI -->
                             <div class="columns-bet-container">
                                 <div class="table-cell column-cell" id="cell-col-3">
                                     <span class="cell-label">2 to 1</span>
@@ -217,18 +266,6 @@
 
                         </div>
                     </div>
-
-                    <div class="table-footer-controls">
-                        <div class="quick-input-box">
-                            <label for="numInput">Nhập số bằng phím:</label>
-                            <input type="number" id="numInput" min="0" max="36" placeholder="0-36" onkeydown="handleInputKeydown(event)">
-                            <button class="btn-primary-sm" onclick="submitNumberFromInput()">Gửi</button>
-                        </div>
-                        <div class="board-action-buttons">
-                            <button class="btn-action" onclick="undoLastNumber()">↩️ Hoàn tác số</button>
-                            <button class="btn-action" onclick="clearHistory()">🗑 Xóa lịch sử</button>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- RACETRACK CỤM BÁNH XE CHÂU ÂU (FRENCH WHEEL RACETRACK) -->
@@ -277,62 +314,61 @@
                 <div class="card glass-card gold-border ticket-card">
                     <div class="prediction-header">
                         <div class="ai-status">
-                            <span class="ai-chip">📋 PHIẾU CƯỢC CHI TIẾT • PHIÊN <b id="nextSpinNumber" class="gold-text">#6</b></span>
+                            <span class="ai-chip">📋 PHIẾU CƯỢC CHI TIẾT • PHIÊN <b id="nextSpinNumber" class="gold-text">#11</b></span>
                             <h2 id="planTotalHeader">KẾ HOẠCH: 10 PHỈNH (20.000 VNĐ)</h2>
                         </div>
-                        <div class="confidence-badge" id="confidenceBadge">Đang đợi 5 vòng đầu...</div>
+                        <div class="confidence-badge" id="confidenceBadge">Đang đợi 10 vòng đầu...</div>
                     </div>
 
                     <!-- DANH SÁCH CHI TIẾT CÁC CỬA CƯỢC ĐỂ NGƯỜI DÙNG ĐẶT THEO -->
                     <div class="bet-ticket-box" id="betTicketBox">
                         <div class="ticket-empty-state">
                             <span class="empty-icon">⏳</span>
-                            <p>Hãy nhập đủ <b>5 vòng quay đầu tiên</b> để AI xuất phiếu cược chi tiết (Số - Đôi - Cụm 4 số - Hàng).</p>
+                            <p>Hãy nhập đủ <b>10 vòng quay đầu tiên</b> để AI phân tích toàn diện (Bên Đỏ/Đen - Ô Hàng - Cụm 4 số - Cặp Đôi - Số Thẳng).</p>
                         </div>
                     </div>
 
                     <!-- BẢNG BẢO ĐẢM KỊCH BẢN THẮNG / HÒA / THUA ÍT -->
                     <div class="scenario-matrix-box">
-                        <div class="scenario-title">📊 Kịch Bản Lợi Nhuận (Chiến Thuật Ăn / Hòa / Thua Ít)</div>
+                        <div class="scenario-title">📊 Chiến Thuật "Ăn Liên Tục & Thua Ít" (Phủ 85%–90%)</div>
                         <div class="scenarios-table" id="scenariosTable">
-                            <div class="scenario-row win-big">
-                                <span class="sc-name">🎯 Nổ Số Thẳng Vàng (35:1):</span>
-                                <span class="sc-result gold-text" id="scenStraightVal">+52.000đ (+26 Phỉnh)</span>
-                            </div>
-                            <div class="scenario-row win-mid">
-                                <span class="sc-name">🔗 Trúng Cặp Đôi Split (17:1):</span>
-                                <span class="sc-result amber-text" id="scenSplitVal">+16.000đ đến +26.000đ</span>
-                            </div>
-                            <div class="scenario-row win-mid">
-                                <span class="sc-name">🔲 Trúng Cụm 4 Số Corner (8:1):</span>
-                                <span class="sc-result purple-text" id="scenCornerVal">HÒA VỐN hoặc LÃI NHẸ</span>
+                            <div class="scenario-row win-safe">
+                                <span class="sc-name">🔴⚫ Trúng Bên ĐỎ / Bên ĐEN (1:1):</span>
+                                <span class="sc-result emerald-text" id="scenColorVal">+6.000đ (ĂN LIÊN TỤC)</span>
                             </div>
                             <div class="scenario-row win-safe">
-                                <span class="sc-name">🛡 Trúng Hàng Dozen (2:1):</span>
-                                <span class="sc-result emerald-text" id="scenDozenVal">+10.000đ (Bảo Toàn)</span>
+                                <span class="sc-name">🛡 Trúng Ô Hàng Dozen (2:1):</span>
+                                <span class="sc-result emerald-text" id="scenDozenVal">+8.000đ (BẢO TOÀN VỐN)</span>
+                            </div>
+                            <div class="scenario-row win-mid">
+                                <span class="sc-name">🔲 Trúng Cụm 4 Số / Cặp Đôi (8:1 - 17:1):</span>
+                                <span class="sc-result purple-text" id="scenCornerVal">+16.000đ đến +36.000đ (ĂN ĐẬM)</span>
+                            </div>
+                            <div class="scenario-row win-big">
+                                <span class="sc-name">🎯 Nổ Số Thẳng Vàng (35:1):</span>
+                                <span class="sc-result gold-text" id="scenStraightVal">+52.000đ đến +72.000đ (ĂN CỰC LỚN)</span>
                             </div>
                             <div class="scenario-row miss">
-                                <span class="sc-name">❌ Lệch toàn bộ mặt bàn:</span>
+                                <span class="sc-name">❌ Lệch toàn bộ mặt bàn (10-15%):</span>
                                 <span class="sc-result red-text" id="scenMissVal">-20.000đ (-10 Phỉnh)</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="quick-next-spin-action">
-                        <span class="action-hint">👉 Sau khi quay xong trên bàn thật, hãy bấm ngay số trúng vào bàn cược bên trái!</span>
+                        <span class="action-hint">👉 Sau khi quay xong trên bàn thật, hãy gõ số mới bằng bàn phím số Numpad hoặc click vào bàn cược!</span>
                     </div>
                 </div>
 
                 <!-- BẢNG PHÂN TÍCH TỔNG HỢP & DỰ BÁO PHỤ -->
                 <div class="card glass-card outside-aux-card">
                     <div class="card-header">
-                        <h3>🔍 Chỉ Số Xác Suất Phụ (Đỏ/Đen & Chẵn/Lẻ)</h3>
+                        <h3>🔍 Chỉ Số Xác Suất Phụ (Cầu Bệt Đỏ/Đen & Chẵn/Lẻ)</h3>
                     </div>
-
                     <div class="aux-metrics-grid">
-                        <div class="metric-box">
-                            <div class="metric-title">MÀU TIỀM NĂNG</div>
-                            <div class="metric-val" id="metricColorVal">---</div>
+                        <div class="aux-metric-box">
+                            <div class="metric-title">Cầu Màu Sắc</div>
+                            <div class="metric-val" id="metricColorVal">Đang tính...</div>
                             <div class="progress-track">
                                 <div class="progress-bar red" id="barRed" style="width: 50%"></div>
                                 <div class="progress-bar black" id="barBlack" style="width: 50%"></div>
@@ -343,9 +379,9 @@
                             </div>
                         </div>
 
-                        <div class="metric-box">
-                            <div class="metric-title">CHẴN / LẺ</div>
-                            <div class="metric-val" id="metricParityVal">---</div>
+                        <div class="aux-metric-box">
+                            <div class="metric-title">Chẵn / Lẻ</div>
+                            <div class="metric-val" id="metricParityVal">Đang tính...</div>
                             <div class="progress-track">
                                 <div class="progress-bar even" id="barEven" style="width: 50%"></div>
                                 <div class="progress-bar odd" id="barOdd" style="width: 50%"></div>
@@ -361,6 +397,10 @@
             </div>
 
         </main>
+
+        <footer class="footer">
+            <p>Roulette Quant AI Pro V5.0 • Thuật toán lượng tử phân tích quán tính bánh xe và chuỗi bệt màu • Hỗ trợ thiết bị di động & máy tính.</p>
+        </footer>
     </div>
 
     <script src="app.js"></script>

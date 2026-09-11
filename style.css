@@ -1214,3 +1214,334 @@ body {
         padding: 8px;
     }
 }
+
+/* ==========================================================================
+   BẢNG NHẬP 10 SỐ KIỂU MOBILE: NUMPAD VIRTUAL & DẢI SỐ DỌC (SCREENSHOT STYLE)
+   ========================================================================== */
+
+.numpad-mobile-section {
+    display: flex;
+    justify-content: center;
+    margin: 16px 0 24px;
+    width: 100%;
+}
+
+.numpad-mobile-card {
+    background: radial-gradient(circle at 50% 20%, #06392c 0%, #021a14 100%);
+    border: 1px solid rgba(245, 207, 109, 0.35);
+    border-radius: 24px;
+    padding: 20px 24px 24px;
+    width: 100%;
+    max-width: 520px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.numpad-mobile-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #f5cf6d, #e53935, #10b981);
+}
+
+.numpad-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 12px;
+}
+
+.numpad-title {
+    font-family: var(--font-heading);
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+.numpad-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.numpad-action-btn {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #e2e8f0;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.numpad-action-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+}
+
+.numpad-action-btn.highlight {
+    background: rgba(245, 207, 109, 0.15);
+    border-color: rgba(245, 207, 109, 0.5);
+    color: var(--gold-primary);
+}
+
+.numpad-content-layout {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+/* DẢI CUỘN SỐ DỌC BÊN TRÁI (THEO ĐÚNG ẢNH MẪU) */
+.vertical-history-container {
+    width: 64px;
+    min-width: 64px;
+    height: 380px;
+    background: rgba(255, 255, 255, 0.96);
+    border-radius: 18px;
+    padding: 10px 6px;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.25), 0 4px 10px rgba(0, 0, 0, 0.4);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.vertical-history-container::-webkit-scrollbar {
+    width: 4px;
+}
+
+.vertical-history-container::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 2px;
+}
+
+.vertical-history-strip {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+}
+
+.strip-badge {
+    width: 48px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 1.18rem;
+    font-weight: 800;
+    color: #ffffff;
+    user-select: none;
+    animation: badgePop 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes badgePop {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.strip-badge.red {
+    background: #e53935;
+    box-shadow: 0 3px 6px rgba(229, 57, 53, 0.45);
+}
+
+.strip-badge.black {
+    background: #111827;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.6);
+}
+
+.strip-badge.zero {
+    background: #15803d;
+    box-shadow: 0 3px 6px rgba(21, 128, 61, 0.45);
+}
+
+/* KHU VỰC BÀN PHÍM BÊN PHẢI */
+.keypad-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 340px;
+}
+
+.numpad-display-area {
+    width: 100%;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.numpad-display-text {
+    min-height: 52px;
+    font-family: var(--font-mono);
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 2px;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+}
+
+.numpad-display-line {
+    width: 80%;
+    height: 3px;
+    background: #ffffff;
+    margin: 4px auto 0;
+    border-radius: 2px;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+.numpad-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    width: 100%;
+    margin-bottom: 18px;
+}
+
+.numpad-key {
+    height: 58px;
+    border-radius: 14px;
+    background: #ffffff;
+    color: #111827;
+    font-family: var(--font-main);
+    font-size: 1.65rem;
+    font-weight: 700;
+    border: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+    transition: all 0.12s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+}
+
+.numpad-key:hover {
+    background: #f8fafc;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+.numpad-key:active {
+    transform: translateY(1px) scale(0.96);
+    background: #e2e8f0;
+}
+
+.numpad-key.backspace-key {
+    font-size: 1.35rem;
+    background: #f1f5f9;
+    color: #334155;
+}
+
+.numpad-key.add-key {
+    font-size: 1.15rem;
+    font-weight: 800;
+    background: #ecfdf5;
+    color: #059669;
+}
+
+.btn-get-predictions {
+    width: 100%;
+    height: 54px;
+    border-radius: 27px;
+    background: linear-gradient(135deg, #a0002a 0%, #70001c 100%);
+    color: #ffffff;
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 6px 20px rgba(160, 0, 42, 0.55);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+}
+
+.btn-get-predictions:hover {
+    filter: brightness(1.15);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(160, 0, 42, 0.7);
+}
+
+.btn-get-predictions:active {
+    transform: scale(0.98);
+}
+
+.numpad-status-note {
+    margin-top: 12px;
+    font-size: 0.85rem;
+    color: #cbd5e1;
+    text-align: center;
+    font-weight: 500;
+}
+
+.numpad-status-note.ready {
+    color: #34d399;
+    font-weight: 700;
+}
+
+/* PHIẾU CƯỢC CHI TIẾT: THÊM DÒNG ĐỎ/ĐEN (1:1) */
+.ticket-row.color-bet {
+    border-left: 4px solid #ef4444;
+    background: rgba(239, 68, 68, 0.08);
+}
+
+.ticket-type-badge.red-side {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.ticket-type-badge.black-side {
+    background: rgba(30, 41, 59, 0.7);
+    color: #cbd5e1;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.ticket-color-badge {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.ticket-color-badge.red {
+    background: rgba(239, 68, 68, 0.25);
+    color: #fca5a5;
+    border: 1px solid rgba(239, 68, 68, 0.5);
+}
+
+.ticket-color-badge.black {
+    background: rgba(15, 23, 42, 0.8);
+    color: #e2e8f0;
+    border: 1px solid rgba(148, 163, 184, 0.5);
+}
+
+.chip-legend.color {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.4);
+}
+
+.casino-chip.chip-color {
+    background: radial-gradient(circle at 35% 35%, #ef4444, #991b1b);
+    border-color: #fca5a5;
+    color: #ffffff;
+}
+
+.casino-chip.chip-color.black {
+    background: radial-gradient(circle at 35% 35%, #334155, #0f172a);
+    border-color: #94a3b8;
+    color: #ffffff;
+}
