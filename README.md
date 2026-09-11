@@ -1,27 +1,32 @@
-# 🎰 Roulette Quant AI Pro V5.0 - Nhập 10 Số • Đỏ/Đen • Ô • Cụm • Số (Ăn Liên Tục & Thua Ít)
+# 🎰 Roulette Physics Simulator & Dual Reality Benchmarker V6.0
 
-Ứng dụng dự đoán Roulette chuẩn Châu Âu (37 số: 0–36) với giao diện **Bàn phím Numpad Mobile** và **Dải cuộn số dọc** chuyên nghiệp, sẵn sàng chạy trên trình duyệt di động hoặc máy tính qua **GitHub Pages**.
+Phòng thí nghiệm nghiên cứu động lực học chuyển động và sự nảy bật của viên bi Roulette Châu Âu (37 số: 0–36). Ứng dụng mô phỏng **CHẠY SONG SONG (Dual Parallel Engine)** để kiểm chứng thuật toán lý thuyết có trùng khớp với thực tế hay không!
 
 ---
 
-## 🌟 Các Tính Năng Mới Trong Phiên Bản V5.0
+## 🔬 1. Mục Đích Nghiên Cứu & Thuật Toán Vật Lý
+Mô hình hóa chính xác 4 giai đoạn chuyển động của viên bi và bánh xe:
+1. **Quỹ đạo lăn vành ngoài (Rim Deceleration):** Ma sát lăn $\mu$ và lực hướng tâm giữ bi trên vành ngoài cho đến khi vận tốc giảm xuống dưới ngưỡng rớt $v_{drop}$.
+2. **Góc và thời gian rớt (Drop Point & Drop Angle):** Tính toán chính xác thời điểm bi rời vành rơi xuống lòng côn.
+3. **Va đập chốt kim cương (Diamond Deflector Impacts):** 8 chốt kim cương quanh lòng chảo gây tán xạ góc và triệt tiêu động năng.
+4. **Nảy bật vách ngăn ô số (Pocket Frets Bouncing):** Sự suy giảm năng lượng theo hệ số đàn hồi $e$ ($v_{k+1} = e \cdot v_k$) cho đến khi viên bi an tọa trong 1 ô số duy nhất.
 
-1. **Giao Diện Bàn Phím Numpad & Dải Số Dọc (Theo Mẫu Ứng Dụng Thực Tế):**
-   - **Bàn phím ảo 12 phím:** `1 2 3` / `4 5 6` / `7 8 9` / `[⌫]` `0` `[Add]`.
-   - **Vạch hiển thị số đang gõ:** Cực nhạy, dễ bấm và không lo gõ nhầm.
-   - **Dải số dọc bên trái:** Hiển thị chuỗi số lịch sử trực quan với các huy hiệu màu Đỏ, Đen và Xanh lá (cho số 0).
-   - **Nút tiện ích:** `Remove Last` (Hoàn tác số vừa gõ), `Finish Game` (Làm lại), `Demo 10 Số` (Nạp ngay 10 số mẫu).
-   - **Nút lớn `Get Predictions`:** Xuất ngay phiếu cược khi đã đủ 10 số.
+---
 
-2. **Chiến Thuật "Ăn Liên Tục & Thua Ít" (Bao Phủ 85% – 90% Mặt Bàn):**
-   - 🔴⚫ **Tầng 1: Bên ĐỎ hoặc Bên ĐEN (1:1):** Dự đoán màu chủ đạo dựa trên chuỗi bệt/cầu của 10 số $\rightarrow$ **Ăn liên tục qua các vòng**!
-   - 🛡 **Tầng 2: Ô HÀNG (Dozen 2:1):** Che chắn 12 số $\rightarrow$ **Bảo toàn vốn xuất sắc**!
-   - 🟣 **Tầng 3: CỤM 4 SỐ (Corner 8:1) & CẶP ĐÔI (Split 17:1):** Khóa các điểm giao quanh vùng quán tính $\rightarrow$ **Ăn đậm**!
-   - 🎯 **Tầng 4: SỐ THẲNG VÀNG (Straight-up 35:1):** Bắt chính xác 1-2 số hạt nhân $\rightarrow$ **Nổ hũ cực lớn**!
+## ⚡ 2. Chế Độ Chạy Song Song: "Có Trùng Với Sự Thật Không?"
 
-3. **2 Chế Độ Cược Linh Hoạt:**
-   - 🟢 **Chuẩn 10 Phỉnh (20.000 VNĐ):** Đỏ/Đen (3 phỉnh) + Ô Hàng (4 phỉnh) + Cụm 4 Số (2 phỉnh) + Số Thẳng (1 phỉnh).
-   - 🟡 **Tăng Cược 15 Phỉnh (30.000 VNĐ):** Đỏ/Đen (4 phỉnh) + Ô Hàng (5 phỉnh) + 2 Cụm 4 Số (4 phỉnh) + 2 Số Thẳng (2 phỉnh).
+Màn hình mô phỏng đồng thời 2 bánh xe ở 60 FPS:
+- 🟢 **Model A (Thuật Toán Lý Thuyết - Deterministic):** Chạy giải tích vi phân thuần túy theo tham số ban đầu, không có nhiễu ngẫu nhiên.
+- 🔵 **Model B (Thực Tế Mô Phỏng - Chaotic Reality):** Áp dụng các biến thiên thực tế: sai số vận tốc ban đầu $\pm \delta v$, ma sát ngẫu nhiên và góc tán xạ khi va chạm chốt kim cương.
+- 📊 **Bảng Đánh Giá Độ Khớp Thực Tế (Reality Match Scorecard):**
+  + **Tỷ lệ Trùng Khớp Tuyệt Đối (Exact Match %):** Cùng rơi vào đúng 1 ô số.
+  + **Tỷ lệ Trùng Khớp Lân Cận (Near Match $\pm 2$ ô %):** Rơi trúng cụm 5 số bánh xe lân cận.
+  + **Độ lệch trung bình (Mean Pocket Distance):** Đo lường mức độ hỗn loạn và khả năng dự đoán điểm rơi thực tế.
+
+---
+
+## �� 3. Đối Soát Số Thực Tế Từ Sòng Bạc (Real Casino Validator)
+- Cho phép bạn nhập trực tiếp số quay ra trên bàn roulette thật để hệ thống kiểm tra độ lệch so với dự báo của Model A.
 
 ---
 

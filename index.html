@@ -3,403 +3,281 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roulette Quant AI Pro - Nhập 10 Số • Đỏ/Đen • Ô • Cụm • Số (Ăn Liên Tục & Thua Ít)</title>
+    <title>Roulette Physics Simulator - Nghiên Cứu Thuật Toán & Chạy Song Song Đối Chiếu Thực Tế</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400&family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="stars-bg"></div>
+    <div class="lab-grid-bg"></div>
 
-    <div class="app-container">
-        <!-- HEADER TRUNG TÂM & QUẢN LÝ VỐN -->
-        <header class="header">
-            <div class="brand">
-                <div class="brand-badge">⚡ PRO QUANT V5.0 • NHẬP 10 SỐ • ĐỎ/ĐEN • Ô • CỤM • SỐ</div>
-                <h1 class="logo-title">ROULETTE <span class="gold-text">QUANT AI</span></h1>
-                <p class="subtitle">Bàn Phím Numpad Mobile • Chiến Thuật ĂN LIÊN TỤC & THUA ÍT • Phủ 85%–90% Bàn</p>
+    <div class="lab-container">
+        <!-- HEADER PHÒNG THÍ NGHIỆM -->
+        <header class="lab-header">
+            <div class="header-left">
+                <div class="lab-badge">🔬 QUANTUM LAB • DUAL PHYSICS ENGINE V6.0</div>
+                <h1 class="lab-title">ROULETTE <span class="neon-green">PHYSICS SIMULATOR</span></h1>
+                <p class="lab-subtitle">Mô Phỏng Động Lực Học Nảy Bật Của Viên Bi • Chạy Song Song Đối Chiếu Thuật Toán vs Thực Tế</p>
             </div>
-            
-            <!-- THỐNG KÊ TÀI CHÍNH & VỐN -->
-            <div class="bankroll-card">
-                <div class="bank-item">
-                    <span class="bank-label">Mỗi Vòng Cược</span>
-                    <span class="bank-val gold-text" id="headerBetSizeText">10 Phỉnh (20.000đ)</span>
+            <div class="header-right">
+                <div class="status-indicator">
+                    <span class="pulse-beacon"></span>
+                    <span id="engineStatusText">SYSTEM ACTIVE (60 FPS)</span>
                 </div>
-                <div class="bank-divider"></div>
-                <div class="bank-item">
-                    <span class="bank-label">Tổng Lợi Nhuận (PnL)</span>
-                    <span class="bank-val" id="totalPnlVnd">0 VNĐ</span>
+                <div class="quick-nav">
+                    <button class="btn-tool" onclick="toggleSound()" title="Âm thanh vật lý">
+                        <span id="soundIcon">🔊</span>
+                    </button>
+                    <button class="btn-tool" onclick="resetAllStats()" title="Đặt lại toàn bộ">
+                        ↺ RESET
+                    </button>
                 </div>
-                <div class="bank-divider"></div>
-                <div class="bank-item">
-                    <span class="bank-label">Lãi/Lỗ Phỉnh</span>
-                    <span class="bank-val" id="totalPnlChips">+0 Phỉnh</span>
-                </div>
-            </div>
-
-            <!-- CHỌN CHẾ ĐỘ CƯỢC -->
-            <div class="bet-mode-group">
-                <button id="mode10Btn" class="btn-mode active" onclick="setBetMode(10)">
-                    🔰 Chuẩn 10 Phỉnh (20k)
-                </button>
-                <button id="mode15Btn" class="btn-mode" onclick="setBetMode(15)">
-                    🚀 Tăng Cược 15 Phỉnh (30k)
-                </button>
-            </div>
-
-            <div class="header-actions">
-                <button id="soundToggleBtn" class="btn-icon" title="Bật/Tắt âm thanh" onclick="toggleSound()">
-                    <span id="soundIcon" class="icon">🔊</span>
-                </button>
-                <button id="demoDataBtn" class="btn-secondary" onclick="loadDemo10Spins()">
-                    🎲 10 Số Mẫu
-                </button>
-                <button id="resetBtn" class="btn-danger" onclick="clearHistory()">
-                    🔄 Đặt Lại
-                </button>
             </div>
         </header>
 
-        <!-- BANNER ĐỐI SOÁT VÒNG VỪA RỒI (AUTO WIN/LOSS EVALUATOR) -->
-        <div id="resultBanner" class="result-eval-banner" style="display: none;">
-            <!-- JS render kết quả ăn liên tục / ăn đậm / trúng đỏ đen / trúng hàng / trúng cụm -->
-        </div>
-
-        <!-- THẺ THEO DÕI HIỆU SUẤT TỔNG THỂ -->
-        <section class="scorecard-section">
-            <div class="scorecard-item">
-                <span class="sc-label">Vòng Đã Đánh Giá</span>
-                <span class="sc-val" id="scTotalSpins">0</span>
+        <!-- BANNER THỐNG KÊ ĐỐI CHIẾU: THUẬT TOÁN CÓ TRÙNG VỚI SỰ THẬT KHÔNG? -->
+        <section class="benchmark-banner-card">
+            <div class="bm-stat-item">
+                <span class="bm-label">Tổng Vòng Chạy Song Song</span>
+                <span class="bm-val" id="bmTotalRuns">0</span>
+                <span class="bm-sub">Vòng quay đã kiểm chứng</span>
             </div>
-            <div class="scorecard-item">
-                <span class="sc-label">Trúng Đỏ/Đen (1:1)</span>
-                <span class="sc-val red-text" id="scColorWins">0</span>
+            <div class="bm-divider"></div>
+            <div class="bm-stat-item highlight-green">
+                <span class="bm-label">Trùng Khớp Tuyệt Đối (Exact)</span>
+                <span class="bm-val" id="bmExactHits">0 <small id="bmExactPct">(0%)</small></span>
+                <span class="bm-sub">Cùng rơi vào đúng 1 ô số</span>
             </div>
-            <div class="scorecard-item">
-                <span class="sc-label">Trúng Hàng Ô (2:1)</span>
-                <span class="sc-val emerald-text" id="scDozenWins">0</span>
+            <div class="bm-divider"></div>
+            <div class="bm-stat-item highlight-cyan">
+                <span class="bm-label">Trùng Khớp Cung Lân Cận (±2 Ô)</span>
+                <span class="bm-val" id="bmNearHits">0 <small id="bmNearPct">(0%)</small></span>
+                <span class="bm-sub">Rơi trúng cụm 5 số bánh xe</span>
             </div>
-            <div class="scorecard-item">
-                <span class="sc-label">Cụm 4 Số / Đôi / Số Thẳng</span>
-                <span class="sc-val gold-text" id="scClusterWins">0</span>
+            <div class="bm-divider"></div>
+            <div class="bm-stat-item">
+                <span class="bm-label">Độ Lệch Trung Bình (Mean Error)</span>
+                <span class="bm-val" id="bmMeanError">0.0 <small>ô</small></span>
+                <span class="bm-sub">Khoảng cách sai số thực nghiệm</span>
             </div>
-            <div class="scorecard-item">
-                <span class="sc-label">Tỷ Lệ Ăn Liên Tục</span>
-                <span class="sc-val emerald-text" id="scWinRate">0%</span>
-            </div>
-        </section>
-
-        <!-- ============================================================= -->
-        <!-- BẢNG NHẬP 10 SỐ KIỂU MOBILE VỚI BÀN PHÍM NUMPAD & DẢI SỐ DỌC -->
-        <!-- ============================================================= -->
-        <section class="numpad-mobile-section">
-            <div class="numpad-mobile-card">
-                <!-- THANH TIÊU ĐỀ & NÚT THAO TÁC -->
-                <div class="numpad-top-bar">
-                    <h2 class="numpad-title">Enter Numbers</h2>
-                    <div class="numpad-actions">
-                        <button class="numpad-action-btn" onclick="removeLastNumber()">Remove Last</button>
-                        <button class="numpad-action-btn" onclick="clearHistory()">Finish Game</button>
-                        <button class="numpad-action-btn highlight" onclick="loadDemo10Spins()">Demo 10 Số</button>
-                    </div>
-                </div>
-
-                <div class="numpad-content-layout">
-                    <!-- DẢI CUỘN SỐ DỌC BÊN TRÁI (THEO ĐÚNG MẪU ẢNH CHỤP) -->
-                    <div class="vertical-history-container">
-                        <div class="vertical-history-strip" id="verticalHistoryStrip">
-                            <!-- Danh sách số dọc render bằng JS -->
-                        </div>
-                    </div>
-
-                    <!-- BÀN PHÍM SỐ VIRTUAL NUMPAD BÊN PHẢI -->
-                    <div class="keypad-panel">
-                        <!-- VẠCH HIỂN THỊ SỐ ĐANG GÕ -->
-                        <div class="numpad-display-area">
-                            <div class="numpad-display-text" id="numpadDisplay">
-                                <span class="digit-placeholder">&nbsp;</span>
-                            </div>
-                            <div class="numpad-display-line"></div>
-                        </div>
-
-                        <!-- LƯỚI BÀN PHÍM 12 PHÍM -->
-                        <div class="numpad-grid">
-                            <button class="numpad-key" onclick="handleNumpadDigit('1')">1</button>
-                            <button class="numpad-key" onclick="handleNumpadDigit('2')">2</button>
-                            <button class="numpad-key" onclick="handleNumpadDigit('3')">3</button>
-
-                            <button class="numpad-key" onclick="handleNumpadDigit('4')">4</button>
-                            <button class="numpad-key" onclick="handleNumpadDigit('5')">5</button>
-                            <button class="numpad-key" onclick="handleNumpadDigit('6')">6</button>
-
-                            <button class="numpad-key" onclick="handleNumpadDigit('7')">7</button>
-                            <button class="numpad-key" onclick="handleNumpadDigit('8')">8</button>
-                            <button class="numpad-key" onclick="handleNumpadDigit('9')">9</button>
-
-                            <button class="numpad-key backspace-key" onclick="handleNumpadBackspace()">⌫</button>
-                            <button class="numpad-key" onclick="handleNumpadDigit('0')">0</button>
-                            <button class="numpad-key add-key" onclick="handleNumpadAdd()">Add</button>
-                        </div>
-
-                        <!-- NÚT LỚN XEM DỰ BÁO GET PREDICTIONS -->
-                        <button class="btn-get-predictions" id="btnGetPredictions" onclick="handleGetPredictions()">
-                            Get Predictions
-                        </button>
-
-                        <!-- DÒNG NHẮC NHẬP TỐI THIỂU 10 SỐ -->
-                        <div class="numpad-status-note" id="numpadStatusText">
-                            Please enter at least the last 10 numbers. (Hiện có: 0/10)
-                        </div>
-                    </div>
-                </div>
+            <div class="bm-divider"></div>
+            <div class="bm-stat-item match-verdict-box">
+                <span class="bm-label">Kết Luận Độ Khớp Thực Tế</span>
+                <span class="bm-val verdict-badge" id="bmVerdict">ĐANG ĐỢI DỮ LIỆU...</span>
+                <span class="bm-sub" id="bmVerdictSub">Chạy tối thiểu 3 vòng để đánh giá</span>
             </div>
         </section>
 
-        <!-- KHÔNG GIAN LÀM VIỆC CHÍNH (BÀN CƯỢC CASINO & PHIẾU CƯỢC CHI TIẾT) -->
-        <main class="main-workspace">
+        <!-- KHÔNG GIAN MÔ PHỎNG SONG SONG (DUAL WHEEL VIEW) -->
+        <main class="simulation-workspace">
             
-            <!-- CỘT TRÁI: MẶT BÀN CƯỢC TRỰC QUAN & RACETRACK CỤM -->
-            <div class="board-column">
-                
-                <!-- BÀN CƯỢC CHUẨN CASINO CHÂU ÂU (ROULETTE TABLE LAYOUT) -->
-                <div class="card glass-card table-card">
-                    <div class="card-header">
-                        <div>
-                            <span class="card-tag gold">MẶT BÀN TRỰC QUAN</span>
-                            <h3>Bàn Cược Châu Âu (37 Số & Các Vùng Đặt)</h3>
-                            <p class="card-subtitle">Có thể bấm trực tiếp lên ô số hoặc dùng bàn phím số Numpad ở trên</p>
-                        </div>
-                        <div class="legend-badges">
-                            <span class="chip-legend color">🔴⚫ <b>Đỏ/Đen:</b> 1:1</span>
-                            <span class="chip-legend straight">🟡 <b>Số thẳng:</b> 35:1</span>
-                            <span class="chip-legend split">🟠 <b>Cặp đôi:</b> 17:1</span>
-                            <span class="chip-legend corner">🟣 <b>Cụm 4 số:</b> 8:1</span>
-                            <span class="chip-legend dozen">🟢 <b>Hàng:</b> 2:1</span>
-                        </div>
+            <!-- CỘT 1: BÁNH XE A - THUẬT TOÁN VẬT LÝ LÝ THUYẾT (DETERMINISTIC) -->
+            <div class="wheel-panel deterministic-panel">
+                <div class="panel-header">
+                    <div class="panel-title-group">
+                        <span class="tag-deterministic">MODEL A</span>
+                        <h3>Thuật Toán Lý Thuyết (Deterministic)</h3>
                     </div>
+                    <span class="panel-desc">Giải tích vi phân thuần túy • Không nhiễu ngẫu nhiên</span>
+                </div>
 
-                    <!-- KHUNG BÀN CƯỢC CHUẨN CASINO CHÂU ÂU -->
-                    <div class="roulette-table-wrapper">
-                        <div class="roulette-board-layout">
-                            
-                            <!-- Ô SỐ 0 (ZERO LỚN BÊN TRÁI) -->
-                            <div class="table-cell zero-cell" id="cell-0" onclick="handleNumberClick(0)">
-                                <span class="cell-number">0</span>
-                                <div class="chip-spot" id="chip-spot-0"></div>
-                                <span class="hit-badge" id="hit-0">0x</span>
-                            </div>
-
-                            <!-- LƯỚI 36 SỐ CHÍNH (3 HÀNG X 12 CỘT) -->
-                            <div class="numbers-grid-container" id="numbersGridContainer">
-                                <!-- 36 số được tạo bằng JavaScript -->
-                            </div>
-
-                            <!-- 3 Ô CƯỢC CỘT (2 TO 1) BÊN PHẢI -->
-                            <div class="columns-bet-container">
-                                <div class="table-cell column-cell" id="cell-col-3">
-                                    <span class="cell-label">2 to 1</span>
-                                    <span class="col-sub">Cột 3</span>
-                                    <div class="chip-spot" id="chip-spot-col3"></div>
-                                </div>
-                                <div class="table-cell column-cell" id="cell-col-2">
-                                    <span class="cell-label">2 to 1</span>
-                                    <span class="col-sub">Cột 2</span>
-                                    <div class="chip-spot" id="chip-spot-col2"></div>
-                                </div>
-                                <div class="table-cell column-cell" id="cell-col-1">
-                                    <span class="cell-label">2 to 1</span>
-                                    <span class="col-sub">Cột 1</span>
-                                    <div class="chip-spot" id="chip-spot-col1"></div>
-                                </div>
-                            </div>
-
-                            <!-- HÀNG CƯỢC TÁ (DOZENS: 1st 12, 2nd 12, 3rd 12) -->
-                            <div class="dozens-bet-container">
-                                <div class="table-cell dozen-cell" id="cell-dozen-1">
-                                    <span class="cell-label">1st 12</span>
-                                    <span class="dozen-range">(Số 1 - 12)</span>
-                                    <div class="chip-spot" id="chip-spot-dozen1"></div>
-                                </div>
-                                <div class="table-cell dozen-cell" id="cell-dozen-2">
-                                    <span class="cell-label">2nd 12</span>
-                                    <span class="dozen-range">(Số 13 - 24)</span>
-                                    <div class="chip-spot" id="chip-spot-dozen2"></div>
-                                </div>
-                                <div class="table-cell dozen-cell" id="cell-dozen-3">
-                                    <span class="cell-label">3rd 12</span>
-                                    <span class="dozen-range">(Số 25 - 36)</span>
-                                    <div class="chip-spot" id="chip-spot-dozen3"></div>
-                                </div>
-                            </div>
-
-                            <!-- HÀNG CƯỢC NGOÀI (OUTSIDE BETS) -->
-                            <div class="outside-bets-container">
-                                <div class="table-cell outside-cell" id="cell-low">
-                                    <span class="cell-label">1 - 18</span>
-                                    <div class="chip-spot" id="chip-spot-low"></div>
-                                </div>
-                                <div class="table-cell outside-cell" id="cell-even">
-                                    <span class="cell-label">CHẴN</span>
-                                    <div class="chip-spot" id="chip-spot-even"></div>
-                                </div>
-                                <div class="table-cell outside-cell red-outside" id="cell-red">
-                                    <span class="color-diamond red"></span>
-                                    <span class="cell-label">ĐỎ</span>
-                                    <div class="chip-spot" id="chip-spot-red"></div>
-                                </div>
-                                <div class="table-cell outside-cell black-outside" id="cell-black">
-                                    <span class="color-diamond black"></span>
-                                    <span class="cell-label">ĐEN</span>
-                                    <div class="chip-spot" id="chip-spot-black"></div>
-                                </div>
-                                <div class="table-cell outside-cell" id="cell-odd">
-                                    <span class="cell-label">LẺ</span>
-                                    <div class="chip-spot" id="chip-spot-odd"></div>
-                                </div>
-                                <div class="table-cell outside-cell" id="cell-high">
-                                    <span class="cell-label">19 - 36</span>
-                                    <div class="chip-spot" id="chip-spot-high"></div>
-                                </div>
-                            </div>
-
-                        </div>
+                <div class="canvas-wrapper">
+                    <canvas id="canvasA" width="380" height="380"></canvas>
+                    <div class="wheel-telemetry-badge" id="badgeResultA">
+                        <span class="res-pocket" id="pocketA">--</span>
+                        <span class="res-name" id="nameA">Đang chờ</span>
                     </div>
                 </div>
 
-                <!-- RACETRACK CỤM BÁNH XE CHÂU ÂU (FRENCH WHEEL RACETRACK) -->
-                <div class="card glass-card racetrack-card">
-                    <div class="card-header">
-                        <div>
-                            <span class="card-tag gold">CUNG BÁNH XE VẬT LÝ</span>
-                            <h3>Vòng Cung Racetrack & Quán Tính Điểm Rơi</h3>
-                            <p class="card-subtitle">Hiển thị các cụm bánh xe Châu Âu được bao phủ bởi cược Đôi & Cụm 4 số</p>
-                        </div>
+                <div class="telemetry-grid">
+                    <div class="tele-item">
+                        <span class="t-label">Thời gian lăn (t_drop)</span>
+                        <span class="t-val" id="teleDropTimeA">-- s</span>
                     </div>
-
-                    <div class="racetrack-container" id="racetrackContainer">
-                        <div class="racetrack-sectors-banner">
-                            <div class="sector-badge voisins" id="badgeVoisins">
-                                <span class="sec-name">Voisins du Zéro (17 số)</span>
-                                <span class="sec-prob" id="probVoisins">0%</span>
-                            </div>
-                            <div class="sector-badge tiers" id="badgeTiers">
-                                <span class="sec-name">Tiers du Cylindre (12 số)</span>
-                                <span class="sec-prob" id="probTiers">0%</span>
-                            </div>
-                            <div class="sector-badge orphelins" id="badgeOrphelins">
-                                <span class="sec-name">Orphelins (8 số)</span>
-                                <span class="sec-prob" id="probOrphelins">0%</span>
-                            </div>
-                            <div class="sector-badge jeu-zero" id="badgeJeuZero">
-                                <span class="sec-name">Jeu Zéro (7 số)</span>
-                                <span class="sec-prob" id="probJeuZero">0%</span>
-                            </div>
-                        </div>
-
-                        <!-- CUNG BÁNH XE TRÒN -->
-                        <div class="racetrack-wheel" id="racetrackWheel">
-                            <!-- 37 số render bằng JS -->
-                        </div>
+                    <div class="tele-item">
+                        <span class="t-label">Số lần nảy (Bounces)</span>
+                        <span class="t-val" id="teleBouncesA">--</span>
+                    </div>
+                    <div class="tele-item">
+                        <span class="t-label">Góc điểm rớt (Drop θ)</span>
+                        <span class="t-val" id="teleDropAngleA">--°</span>
+                    </div>
+                    <div class="tele-item">
+                        <span class="t-label">Quán tính nảy (Scatter)</span>
+                        <span class="t-val" id="teleScatterA">Cố định</span>
                     </div>
                 </div>
-
             </div>
 
-            <!-- CỘT PHẢI: PHIẾU CƯỢC CHI TIẾT & KẾ HOẠCH PHÂN BỔ PHỈNH -->
-            <div class="prediction-column">
-
-                <!-- PHIẾU CƯỢC CHI TIẾT (BETTING TICKET) ĐỂ ĐẶT THEO TRÊN BÀN THẬT -->
-                <div class="card glass-card gold-border ticket-card">
-                    <div class="prediction-header">
-                        <div class="ai-status">
-                            <span class="ai-chip">📋 PHIẾU CƯỢC CHI TIẾT • PHIÊN <b id="nextSpinNumber" class="gold-text">#11</b></span>
-                            <h2 id="planTotalHeader">KẾ HOẠCH: 10 PHỈNH (20.000 VNĐ)</h2>
-                        </div>
-                        <div class="confidence-badge" id="confidenceBadge">Đang đợi 10 vòng đầu...</div>
+            <!-- CỘT 2: BÁNH XE B - THỰC TẾ MÔ PHỎNG HỖN LOẠN (CHAOTIC REALITY) -->
+            <div class="wheel-panel chaotic-panel">
+                <div class="panel-header">
+                    <div class="panel-title-group">
+                        <span class="tag-chaotic">MODEL B</span>
+                        <h3>Thực Tế Mô Phỏng (Real-World Chaos)</h3>
                     </div>
+                    <span class="panel-desc">Biến thiên ma sát thực • Va đập chốt kim cương & vi sai</span>
+                </div>
 
-                    <!-- DANH SÁCH CHI TIẾT CÁC CỬA CƯỢC ĐỂ NGƯỜI DÙNG ĐẶT THEO -->
-                    <div class="bet-ticket-box" id="betTicketBox">
-                        <div class="ticket-empty-state">
-                            <span class="empty-icon">⏳</span>
-                            <p>Hãy nhập đủ <b>10 vòng quay đầu tiên</b> để AI phân tích toàn diện (Bên Đỏ/Đen - Ô Hàng - Cụm 4 số - Cặp Đôi - Số Thẳng).</p>
-                        </div>
-                    </div>
-
-                    <!-- BẢNG BẢO ĐẢM KỊCH BẢN THẮNG / HÒA / THUA ÍT -->
-                    <div class="scenario-matrix-box">
-                        <div class="scenario-title">📊 Chiến Thuật "Ăn Liên Tục & Thua Ít" (Phủ 85%–90%)</div>
-                        <div class="scenarios-table" id="scenariosTable">
-                            <div class="scenario-row win-safe">
-                                <span class="sc-name">🔴⚫ Trúng Bên ĐỎ / Bên ĐEN (1:1):</span>
-                                <span class="sc-result emerald-text" id="scenColorVal">+6.000đ (ĂN LIÊN TỤC)</span>
-                            </div>
-                            <div class="scenario-row win-safe">
-                                <span class="sc-name">🛡 Trúng Ô Hàng Dozen (2:1):</span>
-                                <span class="sc-result emerald-text" id="scenDozenVal">+8.000đ (BẢO TOÀN VỐN)</span>
-                            </div>
-                            <div class="scenario-row win-mid">
-                                <span class="sc-name">🔲 Trúng Cụm 4 Số / Cặp Đôi (8:1 - 17:1):</span>
-                                <span class="sc-result purple-text" id="scenCornerVal">+16.000đ đến +36.000đ (ĂN ĐẬM)</span>
-                            </div>
-                            <div class="scenario-row win-big">
-                                <span class="sc-name">🎯 Nổ Số Thẳng Vàng (35:1):</span>
-                                <span class="sc-result gold-text" id="scenStraightVal">+52.000đ đến +72.000đ (ĂN CỰC LỚN)</span>
-                            </div>
-                            <div class="scenario-row miss">
-                                <span class="sc-name">❌ Lệch toàn bộ mặt bàn (10-15%):</span>
-                                <span class="sc-result red-text" id="scenMissVal">-20.000đ (-10 Phỉnh)</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="quick-next-spin-action">
-                        <span class="action-hint">👉 Sau khi quay xong trên bàn thật, hãy gõ số mới bằng bàn phím số Numpad hoặc click vào bàn cược!</span>
+                <div class="canvas-wrapper">
+                    <canvas id="canvasB" width="380" height="380"></canvas>
+                    <div class="wheel-telemetry-badge chaotic" id="badgeResultB">
+                        <span class="res-pocket" id="pocketB">--</span>
+                        <span class="res-name" id="nameB">Đang chờ</span>
                     </div>
                 </div>
 
-                <!-- BẢNG PHÂN TÍCH TỔNG HỢP & DỰ BÁO PHỤ -->
-                <div class="card glass-card outside-aux-card">
-                    <div class="card-header">
-                        <h3>🔍 Chỉ Số Xác Suất Phụ (Cầu Bệt Đỏ/Đen & Chẵn/Lẻ)</h3>
+                <div class="telemetry-grid">
+                    <div class="tele-item">
+                        <span class="t-label">Thời gian lăn (t_drop)</span>
+                        <span class="t-val" id="teleDropTimeB">-- s</span>
                     </div>
-                    <div class="aux-metrics-grid">
-                        <div class="aux-metric-box">
-                            <div class="metric-title">Cầu Màu Sắc</div>
-                            <div class="metric-val" id="metricColorVal">Đang tính...</div>
-                            <div class="progress-track">
-                                <div class="progress-bar red" id="barRed" style="width: 50%"></div>
-                                <div class="progress-bar black" id="barBlack" style="width: 50%"></div>
-                            </div>
-                            <div class="progress-labels">
-                                <span id="labelRed">Đỏ: 50%</span>
-                                <span id="labelBlack">Đen: 50%</span>
-                            </div>
-                        </div>
+                    <div class="tele-item">
+                        <span class="t-label">Số lần nảy (Bounces)</span>
+                        <span class="t-val" id="teleBouncesB">--</span>
+                    </div>
+                    <div class="tele-item">
+                        <span class="t-label">Va chốt cản (Deflector)</span>
+                        <span class="t-val" id="teleDeflectorHitB">--</span>
+                    </div>
+                    <div class="tele-item">
+                        <span class="t-label">Độ lệch so với Model A</span>
+                        <span class="t-val gold-text" id="teleDeltaPockets">-- ô</span>
+                    </div>
+                </div>
+            </div>
 
-                        <div class="aux-metric-box">
-                            <div class="metric-title">Chẵn / Lẻ</div>
-                            <div class="metric-val" id="metricParityVal">Đang tính...</div>
-                            <div class="progress-track">
-                                <div class="progress-bar even" id="barEven" style="width: 50%"></div>
-                                <div class="progress-bar odd" id="barOdd" style="width: 50%"></div>
-                            </div>
-                            <div class="progress-labels">
-                                <span id="labelEven">Chẵn: 50%</span>
-                                <span id="labelOdd">Lẻ: 50%</span>
-                            </div>
+            <!-- CỘT 3: BẢNG ĐIỀU KHIỂN THAM SỐ VẬT LÝ & THÍ NGHIỆM -->
+            <div class="controls-panel">
+                <div class="panel-header">
+                    <h3>⚙️ Tham Số Vật Lý Thực Nghiệm</h3>
+                    <span class="panel-desc">Điều chỉnh thông số động học của viên bi và bánh xe</span>
+                </div>
+
+                <div class="control-sliders">
+                    <div class="control-group">
+                        <div class="control-label-row">
+                            <span>Tốc độ ban đầu bi (v₀)</span>
+                            <span class="slider-value" id="valBs">6.0 m/s</span>
                         </div>
+                        <input type="range" id="inputBs" min="2.0" max="10.0" step="0.1" value="6.0">
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label-row">
+                            <span>Vận tốc quay bánh xe (ω₀)</span>
+                            <span class="slider-value" id="valWs">1.5 rad/s</span>
+                        </div>
+                        <input type="range" id="inputWs" min="0.5" max="3.0" step="0.1" value="1.5">
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label-row">
+                            <span>Hệ số nảy đàn hồi (e)</span>
+                            <span class="slider-value" id="valRe">0.65</span>
+                        </div>
+                        <input type="range" id="inputRe" min="0.20" max="0.95" step="0.01" value="0.65">
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label-row">
+                            <span>Góc phóng bi ban đầu (θ₀)</span>
+                            <span class="slider-value" id="valIa">0°</span>
+                        </div>
+                        <input type="range" id="inputIa" min="0" max="359" step="1" value="0">
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label-row">
+                            <span>Hệ số ma sát lăn vành (μ)</span>
+                            <span class="slider-value" id="valFr">0.40</span>
+                        </div>
+                        <input type="range" id="inputFr" min="0.10" max="0.90" step="0.01" value="0.40">
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label-row">
+                            <span>Mức độ nhiễu thực tế (Noise σ)</span>
+                            <span class="slider-value" id="valNoise">Trung bình</span>
+                        </div>
+                        <input type="range" id="inputNoise" min="0" max="2" step="1" value="1">
                     </div>
                 </div>
 
+                <!-- CÁC NÚT ĐIỀU KHIỂN CHẠY MÔ PHỎNG -->
+                <div class="action-buttons-grid">
+                    <button class="btn-main-spin" id="btnSpin" onclick="triggerParallelSpin()">
+                        ▶ BẮT ĐẦU QUAY SONG SONG (SPACE)
+                    </button>
+                    <div class="sub-buttons-row">
+                        <button class="btn-sub-action btn-auto" id="btnAuto10" onclick="toggleAutoBenchmark(10)">
+                            ⚡ BENCHMARK x10
+                        </button>
+                        <button class="btn-sub-action btn-auto" id="btnAuto50" onclick="toggleAutoBenchmark(50)">
+                            🚀 BENCHMARK x50
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ĐỐI CHIẾU VỚI KẾT QUẢ SÒNG BẠC THẬT (REALITY GROUND TRUTH INPUT) -->
+                <div class="real-casino-validator">
+                    <div class="val-header">
+                        <span>🎯 Nhập Số Thực Tế Từ Sòng Bạc:</span>
+                    </div>
+                    <div class="val-input-row">
+                        <input type="number" id="realInput" min="0" max="36" placeholder="0 - 36" onkeydown="handleRealInputKey(event)">
+                        <button class="btn-val-submit" onclick="submitRealCasinoNumber()">Đối Soát</button>
+                    </div>
+                    <div class="val-result-msg" id="valResultMsg">
+                        Nhập số kết quả thực tế trên bàn quay thật để kiểm tra độ trùng khớp thuật toán!
+                    </div>
+                </div>
             </div>
 
         </main>
 
-        <footer class="footer">
-            <p>Roulette Quant AI Pro V5.0 • Thuật toán lượng tử phân tích quán tính bánh xe và chuỗi bệt màu • Hỗ trợ thiết bị di động & máy tính.</p>
+        <!-- KHU VỰC PHÂN TÍCH CHUYÊN SÂU & ĐỐI CHIẾU LỊCH SỬ -->
+        <section class="analysis-bottom-section">
+            
+            <!-- BIỂU ĐỒ PHÂN PHỐI TẦN SUẤT 37 SỐ (SO SÁNH THUẬT TOÁN VS THỰC TẾ) -->
+            <div class="analysis-card dist-card">
+                <div class="analysis-card-header">
+                    <div>
+                        <h3>📉 Biểu Đồ Phân Phối Tần Suất (37 Số: 0–36)</h3>
+                        <p class="sub-text">Xanh lá: Thuật toán Model A • Đỏ/Xanh dương: Thực tế Model B</p>
+                    </div>
+                    <div class="dist-legend">
+                        <span class="leg-item"><span class="color-box model-a"></span> Model A</span>
+                        <span class="leg-item"><span class="color-box model-b"></span> Model B</span>
+                    </div>
+                </div>
+                <div class="dist-canvas-wrapper">
+                    <canvas id="distCanvas" width="700" height="140"></canvas>
+                </div>
+            </div>
+
+            <!-- NHẬT KÝ VẬT LÝ THEO THỜI GIAN THỰC (REAL-TIME PHYSICS TELEMETRY LOG) -->
+            <div class="analysis-card log-card">
+                <div class="analysis-card-header">
+                    <div>
+                        <h3>🔬 Nhật Ký Vật Lý & Dữ Liệu Tán Xạ (Physics Log)</h3>
+                        <p class="sub-text">Theo dõi chi tiết sai lệch từng vòng thử nghiệm</p>
+                    </div>
+                    <button class="btn-clear-log" onclick="clearLog()">Xóa log</button>
+                </div>
+                <div class="physics-log-container" id="physicsLogContainer">
+                    <div class="log-entry sys-msg">
+                        <span class="log-time">[SYSTEM]</span> Động cơ vật lý đã sẵn sàng. Bấm QUAY hoặc nhấn SPACE để bắt đầu thử nghiệm đối chiếu song song!
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="lab-footer">
+            <p>Roulette Physics Simulator V6.0 • Nghiên cứu cơ học nảy bật, tán xạ góc va đập và tính hỗn loạn của chuyển động viên bi roulette.</p>
         </footer>
     </div>
 
