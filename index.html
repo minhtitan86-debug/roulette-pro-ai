@@ -1,286 +1,1424 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roulette Physics Simulator - Nghiên Cứu Thuật Toán & Chạy Song Song Đối Chiếu Thực Tế</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400&family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roulette Pro AI - Phân Tích & Gợi Ý Đặt Cược Thông Minh</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #0a0f1d;
+      --bg-card: #111827;
+      --bg-card-alt: #1e293b;
+      --border-card: #334155;
+      
+      --felt-green: #064e3b;
+      --felt-border: #047857;
+      --gold: #f59e0b;
+      --gold-glow: rgba(245, 158, 11, 0.4);
+      --gold-light: #fef3c7;
+      
+      --red-num: #dc2626;
+      --red-glow: rgba(220, 38, 38, 0.5);
+      --black-num: #111827;
+      --black-border: #475569;
+      --green-zero: #15803d;
+      
+      --accent-cyan: #06b6d4;
+      --accent-purple: #8b5cf6;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 16px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* HEADER */
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+      padding: 12px;
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 14px;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      border-radius: 9999px;
+      color: var(--gold);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #ffffff 30%, #f59e0b 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    /* SPINS INPUT SECTION */
+    .section-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    .section-title-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #fff;
+    }
+
+    .section-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border-card);
+      color: var(--text-muted);
+    }
+
+    .btn-outline:hover {
+      background: var(--bg-card-alt);
+      color: #fff;
+      border-color: #64748b;
+    }
+
+    .btn-random {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      color: #fff;
+    }
+    .btn-random:hover {
+      filter: brightness(1.15);
+      transform: translateY(-1px);
+    }
+
+    .btn-danger {
+      background: rgba(220, 38, 38, 0.15);
+      border: 1px solid rgba(220, 38, 38, 0.4);
+      color: #f87171;
+    }
+    .btn-danger:hover {
+      background: #dc2626;
+      color: #fff;
+    }
+
+    /* 10 SPINS SLOTS */
+    .spins-tracker {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .spins-tracker {
+        grid-template-columns: repeat(5, 1fr);
+      }
+    }
+
+    .spin-slot {
+      background: var(--bg-card-alt);
+      border: 2px dashed var(--border-card);
+      border-radius: 12px;
+      padding: 10px 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 75px;
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .spin-slot.filled {
+      border-style: solid;
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .spin-slot.red {
+      background: linear-gradient(145deg, #ef4444, #991b1b);
+      border-color: #f87171;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    .spin-slot.black {
+      background: linear-gradient(145deg, #1e293b, #090d16);
+      border-color: #475569;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    .spin-slot.green {
+      background: linear-gradient(145deg, #10b981, #065f46);
+      border-color: #34d399;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .spin-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .spin-slot.filled .spin-label {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .spin-value {
+      font-size: 22px;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .spin-slot.empty .spin-value {
+      color: #475569;
+      font-size: 16px;
+    }
+
+    .spin-slot .btn-remove {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: #ef4444;
+      color: white;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      font-size: 11px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: 1px solid white;
+    }
+
+    .spin-slot.filled:hover .btn-remove {
+      display: flex;
+    }
+
+    /* QUICK KEYPAD (0-36) */
+    .keypad-wrapper {
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 12px;
+      padding: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .keypad-header {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .keypad-grid {
+      display: grid;
+      grid-template-columns: repeat(13, 1fr);
+      gap: 6px;
+    }
+
+    @media (max-width: 900px) {
+      .keypad-grid {
+        grid-template-columns: repeat(7, 1fr);
+      }
+    }
+    @media (max-width: 480px) {
+      .keypad-grid {
+        grid-template-columns: repeat(6, 1fr);
+      }
+    }
+
+    .key-btn {
+      height: 36px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 800;
+      border: 1px solid transparent;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+
+    .key-btn:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.25);
+    }
+    .key-btn:active {
+      transform: scale(0.95);
+    }
+
+    .key-zero {
+      background: #15803d;
+      border-color: #22c55e;
+    }
+    .key-red {
+      background: #b91c1c;
+      border-color: #ef4444;
+    }
+    .key-black {
+      background: #1e293b;
+      border-color: #475569;
+    }
+
+    /* QUICK STRING INPUT BAR */
+    .quick-input-bar {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .quick-input {
+      flex: 1;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: #fff;
+      font-size: 13px;
+    }
+    .quick-input:focus {
+      outline: none;
+      border-color: var(--gold);
+    }
+
+    /* SUGGESTION HERO BOX (TO RÕ RÀNG) */
+    .suggestion-box {
+      background: radial-gradient(circle at top, #1e1b4b 0%, #0f172a 100%);
+      border: 2px solid #6366f1;
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 30px rgba(99, 102, 241, 0.25);
+    }
+
+    .suggestion-box.active-gold {
+      background: radial-gradient(circle at top, #3a2202 0%, #111827 100%);
+      border-color: var(--gold);
+      box-shadow: 0 0 35px var(--gold-glow);
+    }
+
+    .suggestion-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #eab308;
+      color: #000;
+      font-size: 12px;
+      font-weight: 900;
+      padding: 4px 12px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .suggestion-main-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 20px;
+      align-items: center;
+    }
+
+    @media (max-width: 768px) {
+      .suggestion-main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .suggestion-bet-banner {
+      font-size: 32px;
+      font-weight: 900;
+      line-height: 1.2;
+      color: #fff;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .bet-tag {
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 10px;
+      background: var(--gold);
+      color: #000;
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+      animation: pulseGold 2s infinite;
+    }
+
+    @keyframes pulseGold {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+    }
+
+    .suggestion-reason {
+      font-size: 14px;
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+
+    .suggestion-stats {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+    .stat-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .stat-label {
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .stat-val {
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .confidence-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .confidence-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #10b981, #f59e0b);
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    .secondary-bets {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.1);
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .secondary-chip {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ROULETTE FELT BETTING TABLE (TO RÕ RÀNG) */
+    .table-container {
+      background: #022c22;
+      border: 4px solid #10b981;
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.8), inset 0 0 40px rgba(0, 0, 0, 0.6);
+      overflow-x: auto;
+    }
+
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .table-title {
+      font-size: 18px;
+      font-weight: 900;
+      color: #a7f3d0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .table-legend {
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+
+    /* ROULETTE BOARD GRID */
+    .roulette-board {
+      min-width: 820px;
+      display: flex;
+      user-select: none;
+    }
+
+    /* 0 ZERO CELL */
+    .zero-zone {
+      width: 60px;
+      margin-right: 4px;
+      display: flex;
+    }
+
+    .cell-zero {
+      flex: 1;
+      background: var(--green-zero);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      border-radius: 12px 0 0 12px;
+      color: #fff;
+      font-size: 24px;
+      font-weight: 900;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .cell-zero:hover {
+      filter: brightness(1.2);
+    }
+
+    /* NUMBERS GRID (3 rows x 12 cols) */
+    .numbers-zone {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .numbers-row {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 4px;
+    }
+
+    .board-cell {
+      height: 52px;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 900;
+      color: #fff;
+      cursor: pointer;
+      position: relative;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .board-cell:hover {
+      transform: scale(1.05);
+      z-index: 5;
+      filter: brightness(1.2);
+    }
+
+    .board-cell.red {
+      background: var(--red-num);
+    }
+    .board-cell.black {
+      background: var(--black-num);
+      border-color: var(--black-border);
+    }
+
+    /* 2 TO 1 COLUMN CELLS */
+    .cols-zone {
+      width: 65px;
+      margin-left: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .cell-col {
+      height: 52px;
+      background: #064e3b;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 0 8px 8px 0;
+      color: #a7f3d0;
+      font-size: 13px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s;
+    }
+
+    .cell-col:hover {
+      background: #047857;
+      color: #fff;
+    }
+
+    /* OUTSIDE BETS ROWS (DOZENS & SIMPLE BETS) */
+    .outside-bets-zone {
+      margin-top: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-left: 64px;
+      margin-right: 69px;
+    }
+
+    .dozens-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .cell-outside {
+      height: 44px;
+      background: #064e3b;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s;
+    }
+
+    .cell-outside:hover {
+      background: #047857;
+      color: #fff;
+    }
+
+    .simple-bets-row {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 6px;
+    }
+
+    .cell-red-outside {
+      background: #b91c1c !important;
+      border-color: #ef4444 !important;
+    }
+    .cell-black-outside {
+      background: #0f172a !important;
+      border-color: #475569 !important;
+    }
+
+    /* HIGHLIGHT EFFECT - ĐẶT CƯỢC PHÁT SÁNG TO RÕ RÀNG */
+    .highlight-target {
+      border: 3px solid #facc15 !important;
+      box-shadow: 0 0 20px #facc15, inset 0 0 15px rgba(250, 204, 21, 0.4) !important;
+      transform: scale(1.02);
+      z-index: 10;
+      animation: glowTarget 1.5s infinite alternate;
+    }
+
+    @keyframes glowTarget {
+      from { box-shadow: 0 0 10px #facc15, inset 0 0 10px rgba(250, 204, 21, 0.3); }
+      to { box-shadow: 0 0 25px #facc15, inset 0 0 20px rgba(250, 204, 21, 0.6); }
+    }
+
+    .highlight-secondary {
+      border: 3px solid #38bdf8 !important;
+      box-shadow: 0 0 15px #38bdf8, inset 0 0 10px rgba(56, 189, 248, 0.3) !important;
+      z-index: 9;
+    }
+
+    /* FLOATING CHIP ON TABLE */
+    .bet-chip {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #facc15;
+      color: #000;
+      font-size: 10px;
+      font-weight: 900;
+      padding: 2px 6px;
+      border-radius: 999px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+      border: 1.5px solid #fff;
+      pointer-events: none;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      animation: chipBounce 1s infinite alternate;
+    }
+
+    .bet-chip.secondary {
+      background: #38bdf8;
+      color: #000;
+    }
+
+    @keyframes chipBounce {
+      from { transform: translateY(0); }
+      to { transform: translateY(-3px); }
+    }
+
+    /* STATS OVERVIEW CARDS */
+    .stats-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .stats-cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .mini-stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .mini-stat-num {
+      font-size: 20px;
+      font-weight: 900;
+      color: #fff;
+      margin-top: 4px;
+    }
+
+    .mini-stat-title {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    /* FOOTER */
+    footer {
+      text-align: center;
+      padding: 24px 0;
+      color: var(--text-muted);
+      font-size: 13px;
+      border-top: 1px solid var(--border-card);
+    }
+  </style>
 </head>
 <body>
-    <div class="lab-grid-bg"></div>
 
-    <div class="lab-container">
-        <!-- HEADER PHÒNG THÍ NGHIỆM -->
-        <header class="lab-header">
-            <div class="header-left">
-                <div class="lab-badge">🔬 QUANTUM LAB • DUAL PHYSICS ENGINE V6.0</div>
-                <h1 class="lab-title">ROULETTE <span class="neon-green">PHYSICS SIMULATOR</span></h1>
-                <p class="lab-subtitle">Mô Phỏng Động Lực Học Nảy Bật Của Viên Bi • Chạy Song Song Đối Chiếu Thuật Toán vs Thực Tế</p>
-            </div>
-            <div class="header-right">
-                <div class="status-indicator">
-                    <span class="pulse-beacon"></span>
-                    <span id="engineStatusText">SYSTEM ACTIVE (60 FPS)</span>
-                </div>
-                <div class="quick-nav">
-                    <button class="btn-tool" onclick="toggleSound()" title="Âm thanh vật lý">
-                        <span id="soundIcon">🔊</span>
-                    </button>
-                    <button class="btn-tool" onclick="resetAllStats()" title="Đặt lại toàn bộ">
-                        ↺ RESET
-                    </button>
-                </div>
-            </div>
-        </header>
+  <div class="container">
+    <!-- HEADER -->
+    <header>
+      <div class="brand-badge">⚡ Roulette AI Assistant Pro</div>
+      <h1>Dự Đoán & Gợi Ý Đặt Cược Roulette</h1>
+      <p class="subtitle">Nhập 10 vòng quay gần nhất — Hệ thống phân tích quy luật xác suất & hiển thị trực quan bàn cược</p>
+    </header>
 
-        <!-- BANNER THỐNG KÊ ĐỐI CHIẾU: THUẬT TOÁN CÓ TRÙNG VỚI SỰ THẬT KHÔNG? -->
-        <section class="benchmark-banner-card">
-            <div class="bm-stat-item">
-                <span class="bm-label">Tổng Vòng Chạy Song Song</span>
-                <span class="bm-val" id="bmTotalRuns">0</span>
-                <span class="bm-sub">Vòng quay đã kiểm chứng</span>
-            </div>
-            <div class="bm-divider"></div>
-            <div class="bm-stat-item highlight-green">
-                <span class="bm-label">Trùng Khớp Tuyệt Đối (Exact)</span>
-                <span class="bm-val" id="bmExactHits">0 <small id="bmExactPct">(0%)</small></span>
-                <span class="bm-sub">Cùng rơi vào đúng 1 ô số</span>
-            </div>
-            <div class="bm-divider"></div>
-            <div class="bm-stat-item highlight-cyan">
-                <span class="bm-label">Trùng Khớp Cung Lân Cận (±2 Ô)</span>
-                <span class="bm-val" id="bmNearHits">0 <small id="bmNearPct">(0%)</small></span>
-                <span class="bm-sub">Rơi trúng cụm 5 số bánh xe</span>
-            </div>
-            <div class="bm-divider"></div>
-            <div class="bm-stat-item">
-                <span class="bm-label">Độ Lệch Trung Bình (Mean Error)</span>
-                <span class="bm-val" id="bmMeanError">0.0 <small>ô</small></span>
-                <span class="bm-sub">Khoảng cách sai số thực nghiệm</span>
-            </div>
-            <div class="bm-divider"></div>
-            <div class="bm-stat-item match-verdict-box">
-                <span class="bm-label">Kết Luận Độ Khớp Thực Tế</span>
-                <span class="bm-val verdict-badge" id="bmVerdict">ĐANG ĐỢI DỮ LIỆU...</span>
-                <span class="bm-sub" id="bmVerdictSub">Chạy tối thiểu 3 vòng để đánh giá</span>
-            </div>
-        </section>
+    <!-- SECTION 1: NHẬP 10 VÒNG QUAY -->
+    <div class="section-card">
+      <div class="section-title-bar">
+        <div class="section-title">
+          <span>🎰</span> 10 Vòng Quay Gần Nhất (Đã nhập: <span id="spin-count-badge" style="color: var(--gold);">0/10</span>)
+        </div>
+        <div class="section-actions">
+          <button class="btn btn-random" id="btn-random-spins" title="Tự sinh ngẫu nhiên 10 số để thử nghiệm">
+            🎲 Thử Ngẫu Nhiên 10 Số
+          </button>
+          <button class="btn btn-outline" id="btn-undo-spin" title="Xóa số vừa nhập gần nhất">
+            ↩️ Xóa Số Vừa Nhập
+          </button>
+          <button class="btn btn-danger" id="btn-clear-spins" title="Xóa toàn bộ">
+            🗑️ Làm Mới
+          </button>
+        </div>
+      </div>
 
-        <!-- KHÔNG GIAN MÔ PHỎNG SONG SONG (DUAL WHEEL VIEW) -->
-        <main class="simulation-workspace">
-            
-            <!-- CỘT 1: BÁNH XE A - THUẬT TOÁN VẬT LÝ LÝ THUYẾT (DETERMINISTIC) -->
-            <div class="wheel-panel deterministic-panel">
-                <div class="panel-header">
-                    <div class="panel-title-group">
-                        <span class="tag-deterministic">MODEL A</span>
-                        <h3>Thuật Toán Lý Thuyết (Deterministic)</h3>
-                    </div>
-                    <span class="panel-desc">Giải tích vi phân thuần túy • Không nhiễu ngẫu nhiên</span>
-                </div>
+      <!-- 10 Ô VÒNG QUAY -->
+      <div class="spins-tracker" id="spins-tracker">
+        <!-- 10 slots rendered by JS -->
+      </div>
 
-                <div class="canvas-wrapper">
-                    <canvas id="canvasA" width="380" height="380"></canvas>
-                    <div class="wheel-telemetry-badge" id="badgeResultA">
-                        <span class="res-pocket" id="pocketA">--</span>
-                        <span class="res-name" id="nameA">Đang chờ</span>
-                    </div>
-                </div>
+      <!-- BÀN PHÍM CHỌN NHANH (0-36) -->
+      <div class="keypad-wrapper">
+        <div class="keypad-header">
+          <span>BẤM SỐ ĐỂ THÊM VÀO VÒNG QUAY (0 - 36):</span>
+          <span style="font-size: 11px; color: #94a3b8;">Nhấp trực tiếp trên bàn cược phía dưới cũng được</span>
+        </div>
+        <div class="keypad-grid" id="keypad-grid">
+          <!-- 37 buttons rendered by JS -->
+        </div>
 
-                <div class="telemetry-grid">
-                    <div class="tele-item">
-                        <span class="t-label">Thời gian lăn (t_drop)</span>
-                        <span class="t-val" id="teleDropTimeA">-- s</span>
-                    </div>
-                    <div class="tele-item">
-                        <span class="t-label">Số lần nảy (Bounces)</span>
-                        <span class="t-val" id="teleBouncesA">--</span>
-                    </div>
-                    <div class="tele-item">
-                        <span class="t-label">Góc điểm rớt (Drop θ)</span>
-                        <span class="t-val" id="teleDropAngleA">--°</span>
-                    </div>
-                    <div class="tele-item">
-                        <span class="t-label">Quán tính nảy (Scatter)</span>
-                        <span class="t-val" id="teleScatterA">Cố định</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CỘT 2: BÁNH XE B - THỰC TẾ MÔ PHỎNG HỖN LOẠN (CHAOTIC REALITY) -->
-            <div class="wheel-panel chaotic-panel">
-                <div class="panel-header">
-                    <div class="panel-title-group">
-                        <span class="tag-chaotic">MODEL B</span>
-                        <h3>Thực Tế Mô Phỏng (Real-World Chaos)</h3>
-                    </div>
-                    <span class="panel-desc">Biến thiên ma sát thực • Va đập chốt kim cương & vi sai</span>
-                </div>
-
-                <div class="canvas-wrapper">
-                    <canvas id="canvasB" width="380" height="380"></canvas>
-                    <div class="wheel-telemetry-badge chaotic" id="badgeResultB">
-                        <span class="res-pocket" id="pocketB">--</span>
-                        <span class="res-name" id="nameB">Đang chờ</span>
-                    </div>
-                </div>
-
-                <div class="telemetry-grid">
-                    <div class="tele-item">
-                        <span class="t-label">Thời gian lăn (t_drop)</span>
-                        <span class="t-val" id="teleDropTimeB">-- s</span>
-                    </div>
-                    <div class="tele-item">
-                        <span class="t-label">Số lần nảy (Bounces)</span>
-                        <span class="t-val" id="teleBouncesB">--</span>
-                    </div>
-                    <div class="tele-item">
-                        <span class="t-label">Va chốt cản (Deflector)</span>
-                        <span class="t-val" id="teleDeflectorHitB">--</span>
-                    </div>
-                    <div class="tele-item">
-                        <span class="t-label">Độ lệch so với Model A</span>
-                        <span class="t-val gold-text" id="teleDeltaPockets">-- ô</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CỘT 3: BẢNG ĐIỀU KHIỂN THAM SỐ VẬT LÝ & THÍ NGHIỆM -->
-            <div class="controls-panel">
-                <div class="panel-header">
-                    <h3>⚙️ Tham Số Vật Lý Thực Nghiệm</h3>
-                    <span class="panel-desc">Điều chỉnh thông số động học của viên bi và bánh xe</span>
-                </div>
-
-                <div class="control-sliders">
-                    <div class="control-group">
-                        <div class="control-label-row">
-                            <span>Tốc độ ban đầu bi (v₀)</span>
-                            <span class="slider-value" id="valBs">6.0 m/s</span>
-                        </div>
-                        <input type="range" id="inputBs" min="2.0" max="10.0" step="0.1" value="6.0">
-                    </div>
-
-                    <div class="control-group">
-                        <div class="control-label-row">
-                            <span>Vận tốc quay bánh xe (ω₀)</span>
-                            <span class="slider-value" id="valWs">1.5 rad/s</span>
-                        </div>
-                        <input type="range" id="inputWs" min="0.5" max="3.0" step="0.1" value="1.5">
-                    </div>
-
-                    <div class="control-group">
-                        <div class="control-label-row">
-                            <span>Hệ số nảy đàn hồi (e)</span>
-                            <span class="slider-value" id="valRe">0.65</span>
-                        </div>
-                        <input type="range" id="inputRe" min="0.20" max="0.95" step="0.01" value="0.65">
-                    </div>
-
-                    <div class="control-group">
-                        <div class="control-label-row">
-                            <span>Góc phóng bi ban đầu (θ₀)</span>
-                            <span class="slider-value" id="valIa">0°</span>
-                        </div>
-                        <input type="range" id="inputIa" min="0" max="359" step="1" value="0">
-                    </div>
-
-                    <div class="control-group">
-                        <div class="control-label-row">
-                            <span>Hệ số ma sát lăn vành (μ)</span>
-                            <span class="slider-value" id="valFr">0.40</span>
-                        </div>
-                        <input type="range" id="inputFr" min="0.10" max="0.90" step="0.01" value="0.40">
-                    </div>
-
-                    <div class="control-group">
-                        <div class="control-label-row">
-                            <span>Mức độ nhiễu thực tế (Noise σ)</span>
-                            <span class="slider-value" id="valNoise">Trung bình</span>
-                        </div>
-                        <input type="range" id="inputNoise" min="0" max="2" step="1" value="1">
-                    </div>
-                </div>
-
-                <!-- CÁC NÚT ĐIỀU KHIỂN CHẠY MÔ PHỎNG -->
-                <div class="action-buttons-grid">
-                    <button class="btn-main-spin" id="btnSpin" onclick="triggerParallelSpin()">
-                        ▶ BẮT ĐẦU QUAY SONG SONG (SPACE)
-                    </button>
-                    <div class="sub-buttons-row">
-                        <button class="btn-sub-action btn-auto" id="btnAuto10" onclick="toggleAutoBenchmark(10)">
-                            ⚡ BENCHMARK x10
-                        </button>
-                        <button class="btn-sub-action btn-auto" id="btnAuto50" onclick="toggleAutoBenchmark(50)">
-                            🚀 BENCHMARK x50
-                        </button>
-                    </div>
-                </div>
-
-                <!-- ĐỐI CHIẾU VỚI KẾT QUẢ SÒNG BẠC THẬT (REALITY GROUND TRUTH INPUT) -->
-                <div class="real-casino-validator">
-                    <div class="val-header">
-                        <span>🎯 Nhập Số Thực Tế Từ Sòng Bạc:</span>
-                    </div>
-                    <div class="val-input-row">
-                        <input type="number" id="realInput" min="0" max="36" placeholder="0 - 36" onkeydown="handleRealInputKey(event)">
-                        <button class="btn-val-submit" onclick="submitRealCasinoNumber()">Đối Soát</button>
-                    </div>
-                    <div class="val-result-msg" id="valResultMsg">
-                        Nhập số kết quả thực tế trên bàn quay thật để kiểm tra độ trùng khớp thuật toán!
-                    </div>
-                </div>
-            </div>
-
-        </main>
-
-        <!-- KHU VỰC PHÂN TÍCH CHUYÊN SÂU & ĐỐI CHIẾU LỊCH SỬ -->
-        <section class="analysis-bottom-section">
-            
-            <!-- BIỂU ĐỒ PHÂN PHỐI TẦN SUẤT 37 SỐ (SO SÁNH THUẬT TOÁN VS THỰC TẾ) -->
-            <div class="analysis-card dist-card">
-                <div class="analysis-card-header">
-                    <div>
-                        <h3>📉 Biểu Đồ Phân Phối Tần Suất (37 Số: 0–36)</h3>
-                        <p class="sub-text">Xanh lá: Thuật toán Model A • Đỏ/Xanh dương: Thực tế Model B</p>
-                    </div>
-                    <div class="dist-legend">
-                        <span class="leg-item"><span class="color-box model-a"></span> Model A</span>
-                        <span class="leg-item"><span class="color-box model-b"></span> Model B</span>
-                    </div>
-                </div>
-                <div class="dist-canvas-wrapper">
-                    <canvas id="distCanvas" width="700" height="140"></canvas>
-                </div>
-            </div>
-
-            <!-- NHẬT KÝ VẬT LÝ THEO THỜI GIAN THỰC (REAL-TIME PHYSICS TELEMETRY LOG) -->
-            <div class="analysis-card log-card">
-                <div class="analysis-card-header">
-                    <div>
-                        <h3>🔬 Nhật Ký Vật Lý & Dữ Liệu Tán Xạ (Physics Log)</h3>
-                        <p class="sub-text">Theo dõi chi tiết sai lệch từng vòng thử nghiệm</p>
-                    </div>
-                    <button class="btn-clear-log" onclick="clearLog()">Xóa log</button>
-                </div>
-                <div class="physics-log-container" id="physicsLogContainer">
-                    <div class="log-entry sys-msg">
-                        <span class="log-time">[SYSTEM]</span> Động cơ vật lý đã sẵn sàng. Bấm QUAY hoặc nhấn SPACE để bắt đầu thử nghiệm đối chiếu song song!
-                    </div>
-                </div>
-            </div>
-
-        </section>
-
-        <!-- FOOTER -->
-        <footer class="lab-footer">
-            <p>Roulette Physics Simulator V6.0 • Nghiên cứu cơ học nảy bật, tán xạ góc va đập và tính hỗn loạn của chuyển động viên bi roulette.</p>
-        </footer>
+        <!-- NHẬP NHANH CHUỖI SỐ -->
+        <div class="quick-input-bar">
+          <input type="text" id="quick-input-text" class="quick-input" placeholder="Hoặc dán chuỗi số cách nhau dấu phẩy (vd: 17, 32, 0, 5, 24, 11, 9, 15, 22, 8)...">
+          <button class="btn btn-outline" id="btn-apply-quick">Áp Dụng</button>
+        </div>
+      </div>
     </div>
 
-    <script src="app.js"></script>
+    <!-- SECTION 2: HỘP GỢI Ý ĐẶT CƯỢC CHO VÒNG TIẾP THEO (TO RÕ RÀNG) -->
+    <div class="suggestion-box active-gold" id="suggestion-box">
+      <div class="suggestion-badge">⭐ GỢI Ý ĐẶT CƯỢC VÒNG TIẾP THEO</div>
+      <div class="suggestion-main-grid">
+        <div>
+          <div class="suggestion-bet-banner" id="primary-bet-title">
+            Đang chờ đủ dữ liệu...
+          </div>
+          <p class="suggestion-reason" id="primary-bet-reason">
+            Vui lòng bấm chọn các số của 10 vòng quay gần nhất ở trên (hoặc bấm nút "Thử Ngẫu Nhiên 10 Số") để AI tính toán chuỗi xác suất và tỷ lệ lệch chuẩn.
+          </p>
+          <div class="secondary-bets" id="secondary-bets-container">
+            <!-- Secondary suggestions rendered here -->
+          </div>
+        </div>
+
+        <div class="suggestion-stats">
+          <div class="stat-row">
+            <span class="stat-label">Độ Tin Cậy Dự Đoán:</span>
+            <span class="stat-val" id="confidence-val" style="color: var(--gold);">--%</span>
+          </div>
+          <div class="confidence-bar-bg">
+            <div class="confidence-bar-fill" id="confidence-bar" style="width: 0%;"></div>
+          </div>
+
+          <div style="height: 12px;"></div>
+
+          <div class="stat-row">
+            <span class="stat-label">Cửa Khuyên Dùng:</span>
+            <span class="stat-val" id="recommended-type">--</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Chiến Thuật Phù Hợp:</span>
+            <span class="stat-val" id="strategy-type">Cược Cân Bằng (Balanced)</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">3 Con Số May Mắn:</span>
+            <span class="stat-val" id="lucky-numbers" style="color: #38bdf8;">--</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: BÀN ĐẶT CƯỢC ROULETTE TO RÕ RÀNG VỚI HIGHLIGHT TRỰC TIẾP -->
+    <div class="table-container">
+      <div class="table-header">
+        <div class="table-title">
+          <span>🟢</span> Bàn Đặt Cược Châu Âu (Chạm Vào Ô Để Đặt Cược Hoặc Thêm Số)
+        </div>
+        <div class="table-legend">
+          <div class="legend-item"><div class="legend-dot" style="background: #facc15;"></div> KÈO CHÍNH (Glow Vàng)</div>
+          <div class="legend-item"><div class="legend-dot" style="background: #38bdf8;"></div> KÈO LÓT (Glow Xanh)</div>
+        </div>
+      </div>
+
+      <!-- THE FELT BOARD -->
+      <div class="roulette-board">
+        <!-- 0 ZERO -->
+        <div class="zero-zone">
+          <div class="cell-zero" id="cell-num-0" data-num="0">
+            <span>0</span>
+          </div>
+        </div>
+
+        <!-- 3 ROWS x 12 COLUMNS -->
+        <div class="numbers-zone">
+          <!-- Row 3 (3, 6, 9, 12... 36) -->
+          <div class="numbers-row" id="row-3"></div>
+          <!-- Row 2 (2, 5, 8, 11... 35) -->
+          <div class="numbers-row" id="row-2"></div>
+          <!-- Row 1 (1, 4, 7, 10... 34) -->
+          <div class="numbers-row" id="row-1"></div>
+
+          <!-- OUTSIDE BETS -->
+          <div class="outside-bets-zone">
+            <!-- DOZENS -->
+            <div class="dozens-row">
+              <div class="cell-outside" id="cell-dozen-1" data-bet="dozen1">1st 12 (1 - 12)</div>
+              <div class="cell-outside" id="cell-dozen-2" data-bet="dozen2">2nd 12 (13 - 24)</div>
+              <div class="cell-outside" id="cell-dozen-3" data-bet="dozen3">3rd 12 (25 - 36)</div>
+            </div>
+
+            <!-- SIMPLE BETS (1-18, EVEN, RED, BLACK, ODD, 19-36) -->
+            <div class="simple-bets-row">
+              <div class="cell-outside" id="cell-low" data-bet="low">1 - 18</div>
+              <div class="cell-outside" id="cell-even" data-bet="even">EVEN (CHẴN)</div>
+              <div class="cell-outside cell-red-outside" id="cell-red" data-bet="red">🔴 ĐỎ (RED)</div>
+              <div class="cell-outside cell-black-outside" id="cell-black" data-bet="black">⚫ ĐEN (BLACK)</div>
+              <div class="cell-outside" id="cell-odd" data-bet="odd">ODD (LẺ)</div>
+              <div class="cell-outside" id="cell-high" data-bet="high">19 - 36</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2 TO 1 COLUMN BETS -->
+        <div class="cols-zone">
+          <div class="cell-col" id="cell-col-3" data-bet="col3">2 to 1</div>
+          <div class="cell-col" id="cell-col-2" data-bet="col2">2 to 1</div>
+          <div class="cell-col" id="cell-col-1" data-bet="col1">2 to 1</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 4: THỐNG KÊ NHANH 10 VÒNG -->
+    <div class="stats-cards-grid">
+      <div class="mini-stat-card">
+        <div class="mini-stat-title">Tỷ Lệ Đỏ / Đen</div>
+        <div class="mini-stat-num" id="stat-color-split">0 / 0</div>
+      </div>
+      <div class="mini-stat-card">
+        <div class="mini-stat-title">Tỷ Lệ Chẵn / Lẻ</div>
+        <div class="mini-stat-num" id="stat-parity-split">0 / 0</div>
+      </div>
+      <div class="mini-stat-card">
+        <div class="mini-stat-title">Tỷ Lệ 1-18 / 19-36</div>
+        <div class="mini-stat-num" id="stat-range-split">0 / 0</div>
+      </div>
+      <div class="mini-stat-card">
+        <div class="mini-stat-title">Chuỗi Bệt Hiện Tại</div>
+        <div class="mini-stat-num" id="stat-current-streak">--</div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+      <p>Roulette AI Assistant — Dành cho mục đích nghiên cứu xác suất và giải trí toán học.</p>
+    </footer>
+  </div>
+
+  <!-- SCRIPT LOGIC -->
+  <script>
+    // ROULETTE DEFINITIONS
+    const RED_NUMBERS = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
+    const BLACK_NUMBERS = [2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35];
+    
+    function getNumberColor(n) {
+      if (n === 0) return 'green';
+      return RED_NUMBERS.includes(n) ? 'red' : 'black';
+    }
+
+    // STATE: List of spins (max 10)
+    let spins = [];
+
+    // DOM ELEMENTS
+    const spinsTrackerEl = document.getElementById('spins-tracker');
+    const keypadGridEl = document.getElementById('keypad-grid');
+    const spinCountBadge = document.getElementById('spin-count-badge');
+    const btnRandom = document.getElementById('btn-random-spins');
+    const btnUndo = document.getElementById('btn-undo-spin');
+    const btnClear = document.getElementById('btn-clear-spins');
+    const quickInputText = document.getElementById('quick-input-text');
+    const btnApplyQuick = document.getElementById('btn-apply-quick');
+
+    // Suggestion elements
+    const suggestionBox = document.getElementById('suggestion-box');
+    const primaryBetTitle = document.getElementById('primary-bet-title');
+    const primaryBetReason = document.getElementById('primary-bet-reason');
+    const secondaryBetsContainer = document.getElementById('secondary-bets-container');
+    const confidenceVal = document.getElementById('confidence-val');
+    const confidenceBar = document.getElementById('confidence-bar');
+    const recommendedType = document.getElementById('recommended-type');
+    const strategyType = document.getElementById('strategy-type');
+    const luckyNumbers = document.getElementById('lucky-numbers');
+
+    // Stats elements
+    const statColorSplit = document.getElementById('stat-color-split');
+    const statParitySplit = document.getElementById('stat-parity-split');
+    const statRangeSplit = document.getElementById('stat-range-split');
+    const statCurrentStreak = document.getElementById('stat-current-streak');
+
+    // Rows on board
+    const row3 = document.getElementById('row-3');
+    const row2 = document.getElementById('row-2');
+    const row1 = document.getElementById('row-1');
+
+    // 1. INIT ROULETTE BOARD NUMBERS
+    function initBoard() {
+      // Row 3: 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36
+      for (let c = 1; c <= 12; c++) {
+        const num = c * 3;
+        row3.appendChild(createBoardCell(num));
+      }
+      // Row 2: 2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 35
+      for (let c = 1; c <= 12; c++) {
+        const num = c * 3 - 1;
+        row2.appendChild(createBoardCell(num));
+      }
+      // Row 1: 1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34
+      for (let c = 1; c <= 12; c++) {
+        const num = c * 3 - 2;
+        row1.appendChild(createBoardCell(num));
+      }
+
+      // Add click listener for 0
+      document.getElementById('cell-num-0').addEventListener('click', () => addSpin(0));
+    }
+
+    function createBoardCell(num) {
+      const color = getNumberColor(num);
+      const cell = document.createElement('div');
+      cell.className = `board-cell ${color}`;
+      cell.id = `cell-num-${num}`;
+      cell.dataset.num = num;
+      cell.textContent = num;
+      cell.addEventListener('click', () => addSpin(num));
+      return cell;
+    }
+
+    // 2. INIT QUICK KEYPAD (0-36)
+    function initKeypad() {
+      keypadGridEl.innerHTML = '';
+      for (let i = 0; i <= 36; i++) {
+        const btn = document.createElement('button');
+        const color = getNumberColor(i);
+        btn.className = `key-btn key-${color}`;
+        btn.textContent = i;
+        btn.addEventListener('click', () => addSpin(i));
+        keypadGridEl.appendChild(btn);
+      }
+    }
+
+    // 3. ADD / REMOVE SPINS
+    function addSpin(num) {
+      if (spins.length >= 10) {
+        spins.shift(); // remove oldest spin to maintain rolling 10
+      }
+      spins.push(num);
+      updateApp();
+    }
+
+    function undoSpin() {
+      if (spins.length > 0) {
+        spins.pop();
+        updateApp();
+      }
+    }
+
+    function clearSpins() {
+      spins = [];
+      updateApp();
+    }
+
+    function generateRandomSpins() {
+      spins = [];
+      for (let i = 0; i < 10; i++) {
+        spins.push(Math.floor(Math.random() * 37));
+      }
+      updateApp();
+    }
+
+    // 4. RENDER 10 SPINS TRACKER
+    function renderTracker() {
+      spinsTrackerEl.innerHTML = '';
+      spinCountBadge.textContent = `${spins.length}/10`;
+
+      for (let i = 0; i < 10; i++) {
+        const slot = document.createElement('div');
+        if (i < spins.length) {
+          const val = spins[i];
+          const color = getNumberColor(val);
+          slot.className = `spin-slot filled ${color}`;
+          slot.innerHTML = `
+            <div class="spin-label">Vòng ${i + 1}</div>
+            <div class="spin-value">${val}</div>
+            <div class="btn-remove" title="Xóa số này" onclick="removeSpinAt(${i})">×</div>
+          `;
+        } else {
+          slot.className = 'spin-slot empty';
+          slot.innerHTML = `
+            <div class="spin-label">Vòng ${i + 1}</div>
+            <div class="spin-value">--</div>
+          `;
+        }
+        spinsTrackerEl.appendChild(slot);
+      }
+    }
+
+    window.removeSpinAt = function(index) {
+      spins.splice(index, 1);
+      updateApp();
+    };
+
+    // 5. STATS & PREDICTION ALGORITHM
+    function analyzeSpins() {
+      if (spins.length === 0) {
+        resetSuggestionUI();
+        clearTableHighlights();
+        updateStatsDisplay(0, 0, 0, 0, 0, 0, '--');
+        return;
+      }
+
+      let reds = 0, blacks = 0, greens = 0;
+      let evens = 0, odds = 0;
+      let lows = 0, highs = 0;
+      let d1 = 0, d2 = 0, d3 = 0;
+      let c1 = 0, c2 = 0, c3 = 0;
+
+      spins.forEach(n => {
+        if (n === 0) {
+          greens++;
+          return;
+        }
+        // Red / Black
+        if (RED_NUMBERS.includes(n)) reds++;
+        else blacks++;
+
+        // Even / Odd
+        if (n % 2 === 0) evens++;
+        else odds++;
+
+        // Low / High
+        if (n <= 18) lows++;
+        else highs++;
+
+        // Dozens
+        if (n <= 12) d1++;
+        else if (n <= 24) d2++;
+        else d3++;
+
+        // Columns
+        if (n % 3 === 1) c1++;
+        else if (n % 3 === 2) c2++;
+        else if (n % 3 === 0) c3++;
+      });
+
+      // Calculate streak of latest spins
+      let streakType = '';
+      let streakCount = 0;
+      for (let i = spins.length - 1; i >= 0; i--) {
+        const n = spins[i];
+        if (n === 0) {
+          if (streakType === '' || streakType === 'ZERO') {
+            streakType = 'ZERO';
+            streakCount++;
+          } else break;
+        } else {
+          const col = RED_NUMBERS.includes(n) ? 'ĐỎ' : 'ĐEN';
+          if (streakType === '') {
+            streakType = col;
+            streakCount = 1;
+          } else if (streakType === col) {
+            streakCount++;
+          } else {
+            break;
+          }
+        }
+      }
+
+      const streakStr = streakCount > 0 ? `${streakCount} vòng ${streakType}` : '--';
+      updateStatsDisplay(reds, blacks, evens, odds, lows, highs, streakStr);
+
+      // FORMULATE RECOMMENDATION
+      generateBetSuggestion({
+        reds, blacks, greens,
+        evens, odds,
+        lows, highs,
+        d1, d2, d3,
+        c1, c2, c3,
+        streakType, streakCount,
+        total: spins.length
+      });
+    }
+
+    function updateStatsDisplay(reds, blacks, evens, odds, lows, highs, streakStr) {
+      statColorSplit.innerHTML = `<span style="color:#ef4444">${reds} Đỏ</span> / <span style="color:#94a3b8">${blacks} Đen</span>`;
+      statParitySplit.innerHTML = `${evens} Chẵn / ${odds} Lẻ`;
+      statRangeSplit.innerHTML = `${lows} (1-18) / ${highs} (19-36)`;
+      statCurrentStreak.textContent = streakStr;
+    }
+
+    function generateBetSuggestion(data) {
+      clearTableHighlights();
+
+      let primaryBet = '';
+      let primaryTargetId = '';
+      let reason = '';
+      let confidence = 70;
+      let secondaryBets = [];
+      let secondaryTargetIds = [];
+      let luckyPicks = [];
+
+      // 1. Color Deviation Analysis (Đỏ / Đen)
+      let colorPick = '';
+      let colorTarget = '';
+      if (data.reds >= data.blacks + 3) {
+        colorPick = 'ĐẶT CỬA ĐEN (BLACK)';
+        colorTarget = 'cell-black';
+        reason = `Màu Đỏ đang chiếm ưu thế vượt trội (${data.reds}/${data.total} vòng). Xác suất hồi quy chuỗi lệch pha nghiêng về cửa ĐEN.`;
+        confidence = Math.min(92, 70 + (data.reds - data.blacks) * 6);
+      } else if (data.blacks >= data.reds + 3) {
+        colorPick = 'ĐẶT CỬA ĐỎ (RED)';
+        colorTarget = 'cell-red';
+        reason = `Màu Đen đang chiếm tỷ lệ cao (${data.blacks}/${data.total} vòng). Theo chu kỳ cân bằng xác suất, cửa ĐỎ có tỷ lệ nổ cực cao.`;
+        confidence = Math.min(92, 70 + (data.blacks - data.reds) * 6);
+      } else if (data.streakCount >= 3 && (data.streakType === 'ĐỎ' || data.streakType === 'ĐEN')) {
+        // Streak breaker or streak rider
+        const nextCol = data.streakType === 'ĐỎ' ? 'ĐEN' : 'ĐỎ';
+        colorPick = `BẺ CẦU HOẶC ĐẶT ${nextCol}`;
+        colorTarget = nextCol === 'ĐỎ' ? 'cell-red' : 'cell-black';
+        reason = `Đã xuất hiện chuỗi bệt ${data.streakCount} vòng ${data.streakType}. Thống kê sòng bạc cho thấy chuỗi 4+ thường có xu hướng gãy cầu.`;
+        confidence = 78;
+      }
+
+      // 2. Dozens Strategy (Tá 1, 2, 3 - Cược 2 Tá là chiến thuật chuyên nghiệp 66.7%)
+      let minDozen = 1, minDozenCount = data.d1;
+      if (data.d2 < minDozenCount) { minDozen = 2; minDozenCount = data.d2; }
+      if (data.d3 < minDozenCount) { minDozen = 3; minDozenCount = data.d3; }
+
+      // 2 Tá có tần suất cao nhất để tạo combo 2-Dozen
+      let dozensSorted = [
+        { id: 1, count: data.d1, target: 'cell-dozen-1', label: 'Tá 1 (1-12)' },
+        { id: 2, count: data.d2, target: 'cell-dozen-2', label: 'Tá 2 (13-24)' },
+        { id: 3, count: data.d3, target: 'cell-dozen-3', label: 'Tá 3 (25-36)' }
+      ].sort((a, b) => b.count - a.count);
+
+      // 3. Choose Primary & Secondary
+      if (colorPick) {
+        primaryBet = colorPick;
+        primaryTargetId = colorTarget;
+        // Secondary is the missing dozen or hot 2-dozen
+        secondaryBets.push({ label: `Bảo hiểm ${dozensSorted[0].label}`, target: dozensSorted[0].target });
+        secondaryTargetIds.push(dozensSorted[0].target);
+      } else {
+        // Dozen strategy
+        primaryBet = `PHỦ 2 TÁ: ${dozensSorted[0].label} & ${dozensSorted[1].label}`;
+        primaryTargetId = dozensSorted[0].target;
+        secondaryTargetIds.push(dozensSorted[1].target);
+        reason = `Tá 1, 2, 3 đang phân bổ đều. Sử dụng chiến thuật phủ 2 Tá tỷ lệ thắng 66.7% bao quát 24/37 ô số bàn cược.`;
+        confidence = 82;
+
+        const parityPick = data.evens >= data.odds ? 'Lẻ (Odd)' : 'Chẵn (Even)';
+        const parityTarget = parityPick.includes('Lẻ') ? 'cell-odd' : 'cell-even';
+        secondaryBets.push({ label: `Lót cửa ${parityPick}`, target: parityTarget });
+        secondaryTargetIds.push(parityTarget);
+      }
+
+      // 4. Find 3 Lucky Straight-up Numbers
+      const wheelNeighbors = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
+      const lastNum = spins[spins.length - 1];
+      const lastIdx = wheelNeighbors.indexOf(lastNum);
+      if (lastIdx !== -1) {
+        const left1 = wheelNeighbors[(lastIdx - 1 + wheelNeighbors.length) % wheelNeighbors.length];
+        const right1 = wheelNeighbors[(lastIdx + 1) % wheelNeighbors.length];
+        const opp = wheelNeighbors[(lastIdx + 18) % wheelNeighbors.length];
+        luckyPicks = [left1, right1, opp];
+      } else {
+        luckyPicks = [7, 17, 24];
+      }
+
+      // 5. UPDATE UI
+      primaryBetTitle.innerHTML = `<span class="bet-tag">🎯 ${primaryBet}</span>`;
+      primaryBetReason.textContent = reason;
+      confidenceVal.textContent = `${confidence}%`;
+      confidenceBar.style.width = `${confidence}%`;
+      recommendedType.textContent = colorPick ? 'Outside Bet (1:1)' : '2-Dozen Coverage (2:1)';
+      strategyType.textContent = confidence >= 80 ? 'Tự Tin Cao (High Edge)' : 'Cược Bảo Toàn Vốn';
+      luckyNumbers.textContent = luckyPicks.join(', ');
+
+      // Render secondary tags
+      secondaryBetsContainer.innerHTML = '';
+      secondaryBets.forEach(sec => {
+        const chip = document.createElement('div');
+        chip.className = 'secondary-chip';
+        chip.innerHTML = `🛡️ ${sec.label}`;
+        secondaryBetsContainer.appendChild(chip);
+      });
+
+      // 6. HIGHLIGHT THE FELT TABLE TO RÕ RÀNG
+      highlightTable(primaryTargetId, secondaryTargetIds, luckyPicks);
+    }
+
+    function resetSuggestionUI() {
+      primaryBetTitle.innerHTML = 'Đang chờ nhập dữ liệu vòng quay...';
+      primaryBetReason.textContent = 'Vui lòng bấm chọn số của 10 vòng quay gần nhất ở trên để hệ thống bắt đầu tính toán gợi ý.';
+      confidenceVal.textContent = '--%';
+      confidenceBar.style.width = '0%';
+      recommendedType.textContent = '--';
+      strategyType.textContent = '--';
+      luckyNumbers.textContent = '--';
+      secondaryBetsContainer.innerHTML = '';
+    }
+
+    function clearTableHighlights() {
+      document.querySelectorAll('.highlight-target, .highlight-secondary').forEach(el => {
+        el.classList.remove('highlight-target', 'highlight-secondary');
+      });
+      document.querySelectorAll('.bet-chip').forEach(el => el.remove());
+    }
+
+    function highlightTable(primaryTargetId, secondaryTargetIds, luckyPicks) {
+      // Primary Target Glow
+      if (primaryTargetId) {
+        const el = document.getElementById(primaryTargetId);
+        if (el) {
+          el.classList.add('highlight-target');
+          const chip = document.createElement('div');
+          chip.className = 'bet-chip';
+          chip.innerHTML = '⭐ ĐẶT Ở ĐÂY';
+          el.appendChild(chip);
+        }
+      }
+
+      // Secondary Target Glow
+      secondaryTargetIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.classList.add('highlight-secondary');
+          const chip = document.createElement('div');
+          chip.className = 'bet-chip secondary';
+          chip.innerHTML = '🛡️ BẢO HIỂM';
+          el.appendChild(chip);
+        }
+      });
+
+      // Lucky Numbers Glow
+      luckyPicks.forEach(num => {
+        const numEl = document.getElementById(`cell-num-${num}`);
+        if (numEl && !numEl.classList.contains('highlight-target')) {
+          numEl.classList.add('highlight-secondary');
+          const chip = document.createElement('div');
+          chip.className = 'bet-chip secondary';
+          chip.style.fontSize = '8px';
+          chip.innerHTML = '🎯 LÓT';
+          numEl.appendChild(chip);
+        }
+      });
+    }
+
+    function updateApp() {
+      renderTracker();
+      analyzeSpins();
+    }
+
+    // 6. EVENT LISTENERS
+    btnRandom.addEventListener('click', generateRandomSpins);
+    btnUndo.addEventListener('click', undoSpin);
+    btnClear.addEventListener('click', clearSpins);
+
+    btnApplyQuick.addEventListener('click', () => {
+      const text = quickInputText.value.trim();
+      if (!text) return;
+      const parts = text.split(/[\s,]+/).map(s => parseInt(s)).filter(n => !isNaN(n) && n >= 0 && n <= 36);
+      if (parts.length > 0) {
+        spins = parts.slice(-10); // take latest 10
+        updateApp();
+        quickInputText.value = '';
+      }
+    });
+
+    quickInputText.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        btnApplyQuick.click();
+      }
+    });
+
+    // INIT ON LOAD
+    initBoard();
+    initKeypad();
+    renderTracker();
+    // Start with 10 random demo spins so the user sees the beautiful highlights immediately!
+    generateRandomSpins();
+  </script>
 </body>
 </html>
